@@ -1,0 +1,13 @@
+# Build
+build/
+
+# macOS
+.DS_Store
+*.zip
+
+# Arquivos temporários
+rendered.png
+
+# Configurações locais do Claude Code (exceto launch.json)
+.claude/*
+!.claude/launch.json

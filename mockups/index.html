@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Edge Studio — Mockups</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #07080b; color: #e9edf4; font: 14px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif; -webkit-font-smoothing: antialiased; }
+  .page { max-width: 1400px; margin: 0 auto; padding: 28px 16px 80px; }
+  .page h1 { font-size: 22px; margin: 0 0 4px; letter-spacing: -.01em; }
+  .page .lead { color: #8d97a8; margin: 0 0 20px; }
+  .switch { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; padding: 12px 0; }
+  .switch button { all: unset; cursor: pointer; padding: 10px 16px; border-radius: 12px; border: 1px solid #222837; background: #0f1218; min-width: 200px; }
+  .switch button b { display: block; font-size: 14px; }
+  .switch button span { color: #8d97a8; font-size: 12px; }
+  .switch button.on { border-color: #4f8cff; background: #121a2b; }
+  .opt-desc { color: #aab3c2; margin: 4px 0 18px; max-width: 900px; }
+  .frame-title { display: flex; align-items: baseline; gap: 10px; margin: 26px 0 10px; }
+  .frame-title b { font-size: 15px; }
+  .frame-title span { color: #6f7a8c; font-size: 12.5px; }
+  .stage { width: 100%; position: relative; border-radius: 14px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 0 1px #1c2230; }
+  .frame { width: 1280px; height: 800px; transform-origin: 0 0; position: absolute; left: 0; top: 0; overflow: hidden; }
+
+  /* ---------- theme tokens ---------- */
+  .frame { --bg:#090b12; --bg2:#0d1019; --panel:#11151f; --panel2:#171c28; --line:#20273a; --line2:#2b3448; --tx:#eef2fa; --tx2:#a7b1c4; --tx3:#687389; --ac:#4f8cff; --ac2:#7aa8ff; --acs:rgba(79,140,255,.16); --ok:#2fd08a; --warn:#f5b84a; --rad:14px; background: var(--bg); color: var(--tx); font-size: 13px; }
+  .frame[data-t="B"] { --bg:#0a0b0e; --bg2:#0e1014; --panel:#121418; --panel2:#181b21; --line:#1f232b; --line2:#2a2f39; --ac:#1fc8ef; --ac2:#6ddcf6; --acs:rgba(31,200,239,.13); --rad:12px; }
+  .frame[data-t="C"] { --bg:#0f1013; --bg2:#141519; --panel:#1a1b20; --panel2:#212228; --line:#26282f; --line2:#33353e; --tx2:#b3b6c0; --tx3:#767a87; --ac:#9b8cff; --ac2:#b9afff; --acs:rgba(155,140,255,.15); --rad:18px; }
+
+  .f-row { display: flex; } .f-col { display: flex; flex-direction: column; }
+  .muted { color: var(--tx2); } .dim { color: var(--tx3); }
+  .pill { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 99px; border: 1px solid var(--line2); background: var(--panel); font-size: 12px; color: var(--tx2); white-space: nowrap; }
+  .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 3px rgba(47,208,138,.18); }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line2); background: var(--panel2); color: var(--tx); font-weight: 600; font-size: 13px; white-space: nowrap; }
+  .btn.pri { background: var(--ac); border-color: var(--ac); color: #fff; box-shadow: 0 6px 20px var(--acs); }
+  .frame[data-t="B"] .btn.pri { background: transparent; color: var(--ac2); border-color: var(--ac); box-shadow: 0 0 0 1px var(--ac) inset, 0 0 24px var(--acs); }
+  .btn.ghost { background: transparent; }
+  .tabs { display: flex; gap: 4px; }
+  .seg { display: inline-flex; padding: 4px; gap: 2px; background: var(--bg2); border: 1px solid var(--line); border-radius: 12px; }
+  .seg div { padding: 7px 14px; border-radius: 9px; color: var(--tx2); font-weight: 600; font-size: 12.5px; }
+  .seg div.on { background: var(--panel2); color: var(--tx); box-shadow: 0 1px 0 rgba(255,255,255,.05) inset, 0 2px 8px rgba(0,0,0,.4); }
+  .uline { display: flex; gap: 26px; border-bottom: 1px solid var(--line); }
+  .uline div { padding: 12px 0; color: var(--tx3); font-weight: 600; font-size: 14px; }
+  .uline div.on { color: var(--tx); box-shadow: 0 -2px 0 var(--ac) inset; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--rad); }
+  .cap { font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--tx3); }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 99px; border: 1px solid var(--line2); color: var(--tx2); font-size: 12px; font-weight: 600; }
+  .chip.on { background: var(--ac); border-color: var(--ac); color: #fff; }
+  .slider { position: relative; height: 4px; border-radius: 4px; background: var(--line2); }
+  .slider i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ac); border-radius: 4px; }
+  .slider b { position: absolute; top: -6px; width: 16px; height: 16px; border-radius: 50%; background: #fff; margin-left: -8px; box-shadow: 0 1px 4px rgba(0,0,0,.6); }
+  .kv { display: flex; justify-content: space-between; color: var(--tx2); font-weight: 600; font-size: 12.5px; margin-bottom: 8px; }
+  .kv b { color: var(--tx); }
+  .glyph-tile { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 4px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg2); font-size: 11px; color: var(--tx2); font-weight: 600; }
+  .glyph-tile.on { border-color: var(--ac); background: var(--acs); color: var(--tx); }
+  .win { position: absolute; top: 14px; left: 16px; display: flex; gap: 8px; z-index: 5; }
+  .win i { width: 12px; height: 12px; border-radius: 50%; background: #ff5f57; } .win i:nth-child(2) { background: #febc2e; } .win i:nth-child(3) { background: #28c840; }
+  .note { position: absolute; background: #ffd75e; color: #2a2100; font-size: 11.5px; font-weight: 650; padding: 6px 10px; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,.4); max-width: 230px; z-index: 6; }
+  .note::before { content: attr(data-n); display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: #2a2100; color: #ffd75e; font-size: 10.5px; margin-right: 6px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>DualSense Edge Studio — propostas de interface</h1>
+  <p class="lead">Três direções visuais. Cada uma mostra as telas <b>Botões</b>, <b>Presets</b> e <b>Monitor ao vivo</b> (com giroscópio e touchpad). As notas amarelas explicam as interações e não fazem parte da interface.</p>
+  <div class="switch" id="switch"></div>
+  <p class="opt-desc" id="desc"></p>
+  <div id="frames"></div>
+</div>
+<script src="glyphs.js"></script>
+<script src="mockups.js"></script>
+</body>
+</html>

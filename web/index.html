@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DualSense Edge Studio</title>
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- left rail: controller slots + library -->
+    <nav class="rail">
+      <div class="rail-cap">SLOTS</div>
+      <div id="rail-slots" class="rail-slots"></div>
+      <div class="rail-sep"></div>
+      <button class="rail-btn" id="rail-new" title="Criar um perfil novo na biblioteca">
+        <span class="rail-ico">＋</span><span>Novo</span>
+      </button>
+      <button class="rail-btn" id="rail-lib" title="Biblioteca de perfis do app">
+        <span class="rail-ico"><svg viewBox="0 0 24 24"><path d="M4 5h4v14H4zM10 5h4v14h-4zM16.5 5.5l3.8 1-3.6 13.4-3.8-1z"/></svg></span><span>Biblioteca</span><b id="lib-count" class="rail-badge">0</b>
+      </button>
+      <button class="rail-btn" id="rail-backup" title="Backup dos slots e histórico de gravações">
+        <span class="rail-ico"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 7v5l3 2"/></svg></span><span>Backup</span>
+      </button>
+    </nav>
+
+    <!-- library drawer -->
+    <aside class="drawer hidden" id="drawer">
+      <div class="drawer-head">
+        <div><b>Biblioteca</b><div class="dim small">Perfis salvos neste Mac</div></div>
+        <button class="icon-btn" id="drawer-close" title="Fechar">✕</button>
+      </div>
+      <button class="btn pri block" id="drawer-new">＋ Novo perfil</button>
+      <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="lib-search" placeholder="Buscar perfis" /></div>
+      <div id="lib-list" class="lib-list"></div>
+      <div class="drawer-foot">
+        <button class="btn ghost sm" id="lib-import">⇩ Importar JSON</button>
+        <button class="btn ghost sm" id="lib-export">⇧ Exportar</button>
+      </div>
+    </aside>
+
+    <!-- backup & history drawer -->
+    <aside class="drawer hidden" id="bdrawer">
+      <div class="drawer-head">
+        <div><b>Backup e histórico</b><div class="dim small">Proteção dos slots do controle</div></div>
+        <button class="icon-btn" id="bdrawer-close" title="Fechar">✕</button>
+      </div>
+      <div class="bk-card">
+        <div class="cap">Backup completo</div>
+        <p class="dim small">Salva os 4 slots num arquivo. Ao restaurar, □ ✕ ○ voltam exatamente como estavam.</p>
+        <div class="bk-actions"><button class="btn pri sm" id="bk-export">⇧ Salvar backup</button><button class="btn sm" id="bk-restore">⇩ Restaurar…</button></div>
+      </div>
+      <div class="bk-histhead"><span class="cap">Histórico</span><span class="rail-badge static" id="hist-count"></span><button class="btn ghost sm" id="hist-clear">Apagar</button></div>
+      <div class="dim small" style="margin-top:-6px">Cópia automática do slot antes de cada gravação. Use ↶ para desfazer.</div>
+      <div id="hist-list" class="lib-list"></div>
+    </aside>
+
+    <section class="main">
+      <header class="top">
+        <div class="title-wrap">
+          <input id="name" class="name-input" maxlength="40" spellcheck="false" placeholder="Nome do perfil" />
+          <div id="source" class="source"></div>
+        </div>
+        <div class="seg" id="tabs">
+          <button data-tab="buttons" class="on">Botões</button>
+          <button data-tab="sticks">Analógicos</button>
+          <button data-tab="triggers">Gatilhos</button>
+          <button data-tab="presets">Presets</button>
+          <button data-tab="monitor">Monitor</button>
+          <button data-tab="hw">Hardware</button>
+          <button data-tab="diag">Diagnóstico</button>
+        </div>
+        <div class="top-right">
+          <div id="battery" class="pill hidden"></div>
+          <div id="conn" class="pill"><span class="dot"></span><span id="conn-text">Procurando…</span></div>
+          <button class="icon-btn" id="btn-compare" title="Comparar perfis"><svg viewBox="0 0 24 24"><path d="M7 4v16M17 4v16M3 8h8M13 16h8M3 12h4M17 12h4"/></svg></button>
+          <button class="icon-btn" id="btn-refresh" title="Ler perfis do controle novamente"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button>
+        </div>
+      </header>
+
+      <div class="body" id="body">
+        <!-- home / empty state -->
+        <div class="home hidden" id="home">
+          <div class="home-ctrl" id="home-ctrl"></div>
+          <h2>Comece um perfil</h2>
+          <p>Crie um perfil novo do zero (ele fica salvo na biblioteca e pode ser gravado no controle quando você quiser) ou abra um dos slots do controle.</p>
+          <div class="home-actions">
+            <button class="btn pri lg" id="home-new">＋ Criar perfil novo</button>
+            <button class="btn lg" id="home-lib">Abrir biblioteca</button>
+          </div>
+          <div id="home-slots" class="home-slots"></div>
+        </div>
+
+        <div class="view" data-view="buttons"><div class="stage-wrap"><div class="stage" id="map-stage"></div></div></div>
+        <div class="view hidden" data-view="sticks"><div class="pad-view"><div class="grid2" id="sticks"></div></div></div>
+        <div class="view hidden" data-view="triggers"><div class="pad-view" id="triggers"></div></div>
+        <div class="view hidden" data-view="presets"><div class="presets" id="presets"></div></div>
+        <div class="view hidden" data-view="monitor"><div class="pad-view" id="monitor"></div></div>
+        <div class="view hidden" data-view="hw"><div class="pad-view" id="hw"></div></div>
+        <div class="view hidden" data-view="diag"><div class="pad-view" id="diag"></div></div>
+      </div>
+
+      <footer class="foot" id="foot">
+        <span id="foot-status" class="foot-status"></span>
+        <div class="spacer"></div>
+        <button class="btn ghost" id="btn-revert">Descartar</button>
+        <button class="btn" id="btn-save">Salvar na biblioteca</button>
+        <div class="write-group" id="write-group">
+          <span class="write-label">Gravar em</span>
+          <button class="slot-w" data-sel="96" title="Gravar no slot FN + □"></button>
+          <button class="slot-w" data-sel="97" title="Gravar no slot FN + ✕"></button>
+          <button class="slot-w" data-sel="98" title="Gravar no slot FN + ○"></button>
+        </div>
+      </footer>
+    </section>
+  </div>
+
+  <div id="modal" class="modal hidden"><div class="modal-card"><h3 id="modal-title"></h3><p id="modal-body"></p>
+    <div class="modal-actions"><button class="btn ghost" id="modal-cancel">Cancelar</button><button class="btn pri" id="modal-ok">Confirmar</button></div></div></div>
+  <div id="cmp" class="cmp hidden"></div>
+  <div id="toasts" class="toasts"></div>
+
+  <script src="controller.js"></script>
+  <script src="model3d.js"></script>
+  <script src="proto.js"></script>
+  <script src="presets.js"></script>
+  <script src="native.js"></script>
+  <script src="diag.js"></script>
+  <script src="hw.js"></script>
+  <script src="backup.js"></script>
+  <script src="compare.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
