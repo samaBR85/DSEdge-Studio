@@ -8,6 +8,7 @@
 - Dates and numbers follow the selected language's format.
 - `scripts/i18n_check.py` checks that the translations are complete.
 - README and documentation in English.
+- Release builds are signed with a Developer ID and notarized by Apple; `scripts/notarize.sh` automates it.
 
 ## 1.0 — 2026-11-17
 

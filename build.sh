@@ -1,5 +1,9 @@
 #!/bin/bash
 # Builds "DualSense Edge Studio.app" (universal: Apple Silicon + Intel) into ./build
+#
+# Signing: ad-hoc by default. Set SIGN_IDENTITY to a "Developer ID Application: …" identity
+# (name or SHA-1) to sign for distribution with the hardened runtime and a secure timestamp,
+# which notarization requires (see scripts/notarize.sh).
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -39,7 +43,12 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 </plist>
 PLIST
 
-codesign --force --deep --sign - "$APP" >/dev/null
+if [ -n "${SIGN_IDENTITY:-}" ]; then
+  codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" "$APP"
+  codesign --verify --strict --verbose=2 "$APP"
+else
+  codesign --force --sign - "$APP" >/dev/null
+fi
 
 # The bundle is recreated on every build, so tell Finder / LaunchServices to drop the cached
 # (blank) icon and read the new one.

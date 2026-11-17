@@ -103,11 +103,28 @@ When working on the native layer, keep these guarantees:
 
 ## Releasing a version
 
-1. Update `CFBundleShortVersionString`/`CFBundleVersion` in `build.sh` and the [CHANGELOG](../CHANGELOG.md).
-2. Run `./build.sh` and zip the app:
+Release builds are signed with a **Developer ID Application** certificate, use the hardened runtime and are notarized by Apple, so they open without Gatekeeper warnings.
+
+**One-time setup**
+
+1. Have a *Developer ID Application* certificate in your keychain (check with `security find-identity -v -p codesigning`).
+2. Create an app-specific password at [account.apple.com](https://account.apple.com) › Sign-In and Security › App-Specific Passwords.
+3. Store the notary credentials in the keychain under the profile name `dsedge-notary` (it asks for the app-specific password):
 
    ```bash
-   ditto -c -k --keepParent "build/DualSense Edge Studio.app" "DualSense-Edge-Studio.zip"
+   xcrun notarytool store-credentials dsedge-notary --apple-id YOUR_APPLE_ID --team-id YOUR_TEAM_ID
    ```
 
-3. Create a tag and a GitHub release with the `.zip`. Since the app isn't notarized, people who download it need to right-click › **Open** the first time.
+**Each release**
+
+1. Update `CFBundleShortVersionString`/`CFBundleVersion` in `build.sh` and the [CHANGELOG](../CHANGELOG.md).
+2. Build, sign, notarize and staple:
+
+   ```bash
+   scripts/notarize.sh
+   ```
+
+   The script signs with the first Developer ID in the keychain (override with `SIGN_IDENTITY`), submits to Apple and waits, staples the ticket, checks the app with `spctl` and writes `build/DualSense-Edge-Studio.zip`. If Apple rejects the build, it prints the notary log.
+3. Create a tag and a GitHub release with that `.zip`.
+
+You can sign without notarizing with `SIGN_IDENTITY="Developer ID Application: …" ./build.sh`; without `SIGN_IDENTITY`, `build.sh` signs ad-hoc for local use.

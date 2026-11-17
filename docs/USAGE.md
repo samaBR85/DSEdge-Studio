@@ -133,7 +133,7 @@ The menu-bar icon shows the battery and the active profile. In its menu:
 Allow the app in *System Settings › Privacy & Security › Input Monitoring* and open it again.
 
 **"The app can't be opened because it is from an unidentified developer"**
-The app is signed locally (ad-hoc). If you built it yourself, it opens normally. If you received the `.app` from someone else, right-click it › **Open**, or allow it in *Privacy & Security*.
+The release download is notarized by Apple and doesn't show this. A build made with `./build.sh` is signed only locally: it opens normally on the Mac that built it, but on another Mac you need to right-click it › **Open**, or allow it in *Privacy & Security*.
 
 **The app icon is blank after rebuilding**
 `build.sh` already asks Finder to reload the icon. If it stays blank, move the app to another folder and back, or relaunch Finder.

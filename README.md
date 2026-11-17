@@ -80,9 +80,7 @@
 
 ### Download
 
-Download `DualSense-Edge-Studio.zip` from the [latest release](https://github.com/samaBR85/DSEdge-Studio/releases/latest), unzip it and drag the app to your Applications folder.
-
-The app isn't signed or notarized by Apple, so macOS blocks it the first time. Right-click the app › **Open** › **Open**, or on recent macOS versions open it once, then go to *System Settings › Privacy & Security* and click **Open Anyway**.
+Download `DualSense-Edge-Studio.zip` from the [latest release](https://github.com/samaBR85/DSEdge-Studio/releases/latest), unzip it and drag the app to your Applications folder. The release build is signed with a Developer ID and notarized by Apple, so it opens like any other app.
 
 ### Build from source
 
@@ -95,6 +93,8 @@ cd DSEdge-Studio && ./build.sh
 ```
 
 The app is created at `build/DualSense Edge Studio.app`. Drag it to your Applications folder if you like.
+
+Builds made with `./build.sh` are signed locally (ad-hoc) and are meant for your own Mac; to produce a signed and notarized build, see [Releasing a version](docs/DEVELOPMENT.md#releasing-a-version).
 
 If macOS blocks access to the controller, allow the app in *System Settings › Privacy & Security › Input Monitoring*. More details and troubleshooting are in the [user guide](docs/USAGE.md#troubleshooting).
 
