@@ -66,7 +66,7 @@
 
 | Português | 日本語 | Deutsch |
 |---|---|---|
-| ![Português](docs/images/sticks.png) | ![日本語](docs/images/lang-ja.png) | ![Deutsch](docs/images/lang-de.png) |
+| ![Português](docs/images/lang-pt.png) | ![日本語](docs/images/lang-ja.png) | ![Deutsch](docs/images/lang-de.png) |
 
 ## Requirements
 
@@ -88,7 +88,7 @@ cd DSEdge-Studio && ./build.sh
 
 The app is created at `build/DualSense Edge Studio.app`. Drag it to your Applications folder if you like.
 
-If macOS blocks access to the controller, allow the app in *System Settings › Privacy & Security › Input Monitoring*. More details and troubleshooting are in the [user guide](docs/USO.md#solução-de-problemas) (Portuguese).
+If macOS blocks access to the controller, allow the app in *System Settings › Privacy & Security › Input Monitoring*. More details and troubleshooting are in the [user guide](docs/USAGE.md#troubleshooting).
 
 ## Quick start
 
@@ -97,6 +97,8 @@ If macOS blocks access to the controller, allow the app in *System Settings › 
 3. Adjust buttons, sticks and triggers in the tabs.
 4. Click **Write to □ / ✕ / ○** to send the profile to the controller. A copy of the previous contents goes to the history, so you can undo.
 5. On the controller, switch profiles with **FN + □ / ✕ / ○**.
+
+The full tab-by-tab guide is in [docs/USAGE.md](docs/USAGE.md).
 
 ## Languages
 
@@ -155,14 +157,12 @@ It lists missing translations and any translation whose `{placeholders}` or HTML
 
 ## Documentation
 
-The detailed guides are in Portuguese:
-
 | Document | Contents |
 |---|---|
-| [docs/USO.md](docs/USO.md) | User guide, tab by tab, and troubleshooting. |
-| [docs/ARQUITETURA.md](docs/ARQUITETURA.md) | How the native layer and the UI talk, bridge commands, languages and saved files. |
-| [docs/PROTOCOLO.md](docs/PROTOCOLO.md) | Byte-by-byte profile format, CRCs, input report and output report. |
-| [docs/DESENVOLVIMENTO.md](docs/DESENVOLVIMENTO.md) | Building, running the UI in a browser, translations and contributing. |
+| [docs/USAGE.md](docs/USAGE.md) | User guide, tab by tab, and troubleshooting. |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the native layer and the UI talk, bridge commands, languages and saved files. |
+| [docs/PROTOCOL.md](docs/PROTOCOL.md) | Byte-by-byte profile format, CRCs, input report and output report. |
+| [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Building, running the UI in a browser, translations and contributing. |
 | [CHANGELOG.md](CHANGELOG.md) | Version history. |
 
 ## Protocol summary
@@ -174,7 +174,7 @@ The detailed guides are in Portuguese:
 | Clear slot | Feature `0x68`, byte 1 = 2 □, 3 ✕, 4 ○ |
 | Light bar, LEDs, rumble and adaptive triggers | Output `0x02` (the only output report accepted) |
 
-Validated with a real controller: reading a profile saved by the PS5 and encoding it again produces exactly the same bytes, with the same CRC. Writing a profile and reading it back also returns the same bytes. Details in [docs/PROTOCOLO.md](docs/PROTOCOLO.md).
+Validated with a real controller: reading a profile saved by the PS5 and encoding it again produces exactly the same bytes, with the same CRC. Writing a profile and reading it back also returns the same bytes. Details in [docs/PROTOCOL.md](docs/PROTOCOL.md).
 
 ## Disclaimer
 

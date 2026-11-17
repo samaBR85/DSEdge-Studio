@@ -2,23 +2,24 @@
 
 ## 1.1 — 2026-11-17
 
-- Interface, menus, barra de menus, notificações e mensagens de erro em 9 idiomas: português, inglês, espanhol, francês, alemão, italiano, russo, chinês simplificado e japonês.
-- O app abre no idioma do sistema (inglês quando o idioma do sistema não é um desses).
-- Seletor de idioma no canto superior direito; a escolha fica salva e pode voltar a seguir o sistema.
-- Datas e números seguem o formato do idioma escolhido.
-- `scripts/i18n_check.py` confere se as traduções estão completas.
+- UI, menus, menu-bar item, notifications and error messages in 9 languages: English, Portuguese, Spanish, French, German, Italian, Russian, Simplified Chinese and Japanese.
+- The app starts in the system language (English when the system language isn't one of these).
+- Language picker in the top-right corner; the choice is saved and can go back to following the system.
+- Dates and numbers follow the selected language's format.
+- `scripts/i18n_check.py` checks that the translations are complete.
+- README and documentation in English.
 
 ## 1.0 — 2026-11-17
 
-Primeira versão pública.
+First public release.
 
-- Leitura dos 4 slots do controle, gravação e limpeza de □ ✕ ○.
-- Editor de botões (16 botões, incluindo paddles), analógicos (6 curvas do PS5, intensidade, zona morta e curva livre) e gatilhos.
-- Presets por categoria, sorteio e aplicação de outro perfil.
-- Monitor ao vivo: botões, analógicos, gatilhos, giroscópio com controle 3D, touchpad e report bruto.
-- Aba Hardware: barra de luz, LEDs de jogador, LED do mute, motores de vibração e gatilhos adaptativos.
-- Diagnóstico: drift, circularidade, faixa de L2/R2, taxa de USB e informações do firmware.
-- Biblioteca local com importação/exportação compatível com edge-config.com.
-- Backup completo dos slots e histórico automático com desfazer.
-- Comparação de perfis lado a lado.
-- Ícone na barra de menus com bateria, perfil ativo e aviso de bateria fraca.
+- Reads all 4 controller slots; writes and clears □ ✕ ○.
+- Editors for buttons (16 buttons, including the paddles), sticks (the 6 PS5 curves, intensity, dead zone and free-form curve) and triggers.
+- Presets by category, random preset and applying another profile's settings.
+- Live monitor: buttons, sticks, triggers, gyroscope with a 3D controller, touchpad and raw report.
+- Hardware tab: light bar, player LEDs, mute LED, rumble motors and adaptive triggers.
+- Diagnostics: drift, circularity, L2/R2 range, USB rate and firmware info.
+- Local library with import/export compatible with edge-config.com.
+- Full slot backup and automatic history with undo.
+- Side-by-side profile comparison.
+- Menu-bar icon with battery, active profile and low-battery alerts.
