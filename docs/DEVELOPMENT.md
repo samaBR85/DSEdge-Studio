@@ -124,7 +124,7 @@ Release builds are signed with a **Developer ID Application** certificate, use t
    scripts/notarize.sh
    ```
 
-   The script signs with the first Developer ID in the keychain (override with `SIGN_IDENTITY`), submits to Apple and waits, staples the ticket, checks the app with `spctl` and writes `build/DualSense-Edge-Studio.zip`. If Apple rejects the build, it prints the notary log.
-3. Create a tag and a GitHub release with that `.zip`.
+   The script signs with the first Developer ID in the keychain (override with `SIGN_IDENTITY`), notarizes and staples the app, then builds a disk image with the app and a shortcut to Applications, and signs, notarizes and staples that too. Both are checked with `spctl`. The result is `build/DualSense-Edge-Studio.dmg`. If Apple rejects either submission, the script prints the notary log.
+3. Create a tag and a GitHub release with that `.dmg`.
 
 You can sign without notarizing with `SIGN_IDENTITY="Developer ID Application: …" ./build.sh`; without `SIGN_IDENTITY`, `build.sh` signs ad-hoc for local use.

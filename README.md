@@ -80,7 +80,7 @@
 
 ### Download
 
-Download `DualSense-Edge-Studio.zip` from the [latest release](https://github.com/samaBR85/DSEdge-Studio/releases/latest), unzip it and drag the app to your Applications folder. The release build is signed with a Developer ID and notarized by Apple, so it opens like any other app.
+Download `DualSense-Edge-Studio.dmg` from the [latest release](https://github.com/samaBR85/DSEdge-Studio/releases/latest), open it and drag **DualSense Edge Studio** onto the **Applications** folder. The release build is signed with a Developer ID and notarized by Apple, so it opens like any other app.
 
 ### Build from source
 
