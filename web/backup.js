@@ -45,7 +45,7 @@ const Backup = (() => {
 
   // ---------------------------------------------------------------- full backup
   async function exportAll() {
-    if (!state.status.connected) return toast("Conecte o controle pelo cabo USB para fazer o backup.", "err");
+    if (!state.status.connected) return toast(T("Conecte o controle pelo cabo USB para fazer o backup."), "err");
     try {
       state.slots = Proto.parseAll(await call("readProfiles"));
       const slots = {};
@@ -53,31 +53,31 @@ const Backup = (() => {
       const doc = { format: "dualsense-edge-studio-backup", version: 1, createdAt: new Date().toISOString(), slots };
       const d = new Date(), pad = (n) => String(n).padStart(2, "0");
       const ok = await call("exportJSON", { text: JSON.stringify(doc, null, 2), filename: `edge-backup-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.json` });
-      if (ok) toast("Backup dos 4 slots salvo", "ok");
-    } catch (e) { toast("Falha no backup: " + e.message, "err"); }
+      if (ok) toast(T("Backup dos 4 slots salvo"), "ok");
+    } catch (e) { toast(T("Falha no backup: {err}", { err: e.message }), "err"); }
   }
 
   async function restoreFile() {
-    if (!state.status.connected) return toast("Conecte o controle pelo cabo USB para restaurar.", "err");
+    if (!state.status.connected) return toast(T("Conecte o controle pelo cabo USB para restaurar."), "err");
     let doc;
     try {
       const txt = await call("importJSON");
       if (!txt) return;
       doc = JSON.parse(txt);
-      if (doc?.format !== "dualsense-edge-studio-backup" || !doc.slots) throw new Error("este arquivo não é um backup do DualSense Edge Studio");
-    } catch (e) { return toast("Não foi possível abrir: " + e.message, "err"); }
+      if (doc?.format !== "dualsense-edge-studio-backup" || !doc.slots) throw new Error(T("este arquivo não é um backup do DualSense Edge Studio"));
+    } catch (e) { return toast(T("Não foi possível abrir: {err}", { err: e.message }), "err"); }
     const plan = WRITABLE.map((sel) => ({ sel, p: doc.slots[SLOT_GLYPH[sel]] || null }));
-    const when = doc.createdAt ? new Date(doc.createdAt).toLocaleString("pt-BR") : "data desconhecida";
-    const lines = plan.map(({ sel, p }) => `FN + ${SLOT_NAME[sel]}: ${p ? `“${p.label}”` : "vazio (o slot será limpo)"}`).join(" · ");
-    const ok = await confirmDialog("Restaurar este backup?", `Backup de ${when}. ${lines}. O slot △ (padrão) não pode ser gravado e fica como está. O conteúdo atual de cada slot vai para o histórico, então dá para desfazer.`, "Restaurar");
+    const when = doc.createdAt ? new Date(doc.createdAt).toLocaleString(I18N.locale) : T("data desconhecida");
+    const lines = plan.map(({ sel, p }) => `FN + ${SLOT_NAME[sel]}: ${p ? `“${p.label}”` : T("vazio (o slot será limpo)")}`).join(" · ");
+    const ok = await confirmDialog(T("Restaurar este backup?"), T("Backup de {when}. {lines}. O slot △ (padrão) não pode ser gravado e fica como está. O conteúdo atual de cada slot vai para o histórico, então dá para desfazer.", { when, lines }), T("Restaurar"));
     if (!ok) return;
     try {
       state.busy = true;
-      for (const { sel, p } of plan) await putSlot(sel, p, "antes de restaurar um backup");
+      for (const { sel, p } of plan) await putSlot(sel, p, T("antes de restaurar um backup"));
       call("rumble", { strength: 90, ms: 180 }).catch(() => {});
       await readProfiles(true);
-      toast("Backup restaurado no controle", "ok");
-    } catch (e) { toast("Falha ao restaurar: " + e.message, "err"); }
+      toast(T("Backup restaurado no controle"), "ok");
+    } catch (e) { toast(T("Falha ao restaurar: {err}", { err: e.message }), "err"); }
     state.busy = false;
     renderAll();
   }
@@ -86,18 +86,25 @@ const Backup = (() => {
   async function restoreEntry(id) {
     const h = history.find((x) => x.id === id);
     if (!h) return;
-    if (!state.status.connected) return toast("Conecte o controle pelo cabo USB.", "err");
-    if (!WRITABLE.includes(h.selector)) return toast("O slot △ não pode ser gravado.", "err");
+    if (!state.status.connected) return toast(T("Conecte o controle pelo cabo USB."), "err");
+    if (!WRITABLE.includes(h.selector)) return toast(T("O slot △ não pode ser gravado."), "err");
     const now = slotOf(h.selector);
-    const ok = await confirmDialog(`Desfazer no slot FN + ${SLOT_NAME[h.selector]}?`,
-      `${h.profile ? `“${h.profile.label}” volta para o slot` : "O slot volta a ficar vazio"}${now && !now.empty ? `, no lugar de “${now.label}”` : ""}. O conteúdo atual também vai para o histórico.`, "Restaurar");
+    const replacing = now && !now.empty;
+    const body = h.profile
+      ? (replacing
+        ? T("“{name}” volta para o slot, no lugar de “{cur}”. O conteúdo atual também vai para o histórico.", { name: h.profile.label, cur: now.label })
+        : T("“{name}” volta para o slot. O conteúdo atual também vai para o histórico.", { name: h.profile.label }))
+      : (replacing
+        ? T("O slot volta a ficar vazio, no lugar de “{cur}”. O conteúdo atual também vai para o histórico.", { cur: now.label })
+        : T("O slot volta a ficar vazio. O conteúdo atual também vai para o histórico."));
+    const ok = await confirmDialog(T("Desfazer no slot FN + {g}?", { g: SLOT_NAME[h.selector] }), body, T("Restaurar"));
     if (!ok) return;
     try {
-      await putSlot(h.selector, h.profile, "antes de desfazer");
+      await putSlot(h.selector, h.profile, T("antes de desfazer"));
       call("rumble", { strength: 90, ms: 180 }).catch(() => {});
       await readProfiles(true);
-      toast("Slot restaurado", "ok");
-    } catch (e) { toast("Falha ao restaurar: " + e.message, "err"); }
+      toast(T("Slot restaurado"), "ok");
+    } catch (e) { toast(T("Falha ao restaurar: {err}", { err: e.message }), "err"); }
     renderAll();
   }
   async function toLibrary(id) {
@@ -105,25 +112,25 @@ const Backup = (() => {
     if (!h?.profile) return;
     const p = normalize(Proto.clone(h.profile));
     p.id = Proto.randomId();
-    p.label = uniqueName(h.profile.label || "Perfil");
+    p.label = uniqueName(h.profile.label || T("Perfil"));
     state.library.unshift(p);
     await saveLibrary();
     renderAll();
-    toast(`“${p.label}” salvo na biblioteca`, "ok");
+    toast(T("“{name}” salvo na biblioteca", { name: p.label }), "ok");
   }
   async function clearHistory() {
     if (!history.length) return;
-    if (!(await confirmDialog("Apagar o histórico?", "As cópias guardadas antes de cada gravação serão apagadas. Os slots do controle e a biblioteca não mudam.", "Apagar", true))) return;
+    if (!(await confirmDialog(T("Apagar o histórico?"), T("As cópias guardadas antes de cada gravação serão apagadas. Os slots do controle e a biblioteca não mudam."), T("Apagar"), true))) return;
     history = []; await save(); render();
   }
 
   // ---------------------------------------------------------------- UI
   const ago = (t) => {
     const s = Math.round((Date.now() - t) / 1000);
-    if (s < 60) return "agora";
-    if (s < 3600) return `há ${Math.round(s / 60)} min`;
-    if (s < 86400) return `há ${Math.round(s / 3600)} h`;
-    return new Date(t).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }) + " " + new Date(t).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    if (s < 60) return T("agora");
+    if (s < 3600) return T("há {n} min", { n: Math.round(s / 60) });
+    if (s < 86400) return T("há {n} h", { n: Math.round(s / 3600) });
+    return new Date(t).toLocaleDateString(I18N.locale, { day: "2-digit", month: "short" }) + " " + new Date(t).toLocaleTimeString(I18N.locale, { hour: "2-digit", minute: "2-digit" });
   };
   function render() {
     const box = $("#bdrawer");
@@ -133,11 +140,11 @@ const Backup = (() => {
     const list = history.map((h) => `
       <div class="hist-item" data-id="${esc(h.id)}">
         <div class="ico">${G(SLOT_GLYPH[h.selector], 18)}</div>
-        <div class="tx"><b>${h.profile ? esc(h.profile.label || "Sem nome") : "<i>slot vazio</i>"}</b><span>${esc(ago(h.at))} · ${esc(h.reason)}</span></div>
-        ${WRITABLE.includes(h.selector) ? `<button class="icon-btn" data-act="undo" title="Voltar este conteúdo para o slot FN + ${SLOT_NAME[h.selector]}"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>` : ""}
-        ${h.profile ? `<button class="icon-btn" data-act="lib" title="Salvar uma cópia na biblioteca"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>` : ""}
+        <div class="tx"><b>${h.profile ? esc(h.profile.label || T("Sem nome")) : `<i>${T("slot vazio")}</i>`}</b><span>${esc(ago(h.at))} · ${esc(h.reason)}</span></div>
+        ${WRITABLE.includes(h.selector) ? `<button class="icon-btn" data-act="undo" title="${T("Voltar este conteúdo para o slot FN + {g}", { g: SLOT_NAME[h.selector] })}"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>` : ""}
+        ${h.profile ? `<button class="icon-btn" data-act="lib" title="${T("Salvar uma cópia na biblioteca")}"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>` : ""}
       </div>`).join("");
-    $("#hist-list").innerHTML = list || `<div class="lib-empty">Ainda vazio. Sempre que você gravar, limpar ou restaurar um slot, o conteúdo anterior aparece aqui para poder ser desfeito.</div>`;
+    $("#hist-list").innerHTML = list || `<div class="lib-empty">${T("Ainda vazio. Sempre que você gravar, limpar ou restaurar um slot, o conteúdo anterior aparece aqui para poder ser desfeito.")}</div>`;
     $("#hist-count").textContent = history.length ? `${history.length}` : "";
     $$("#hist-list .hist-item").forEach((el) => {
       el.onclick = (e) => {

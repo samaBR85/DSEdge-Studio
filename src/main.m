@@ -15,6 +15,50 @@ static const int kVendorSony = 0x054C;
 static const int kProductEdge = 0x0DF2;
 static const CFIndex kReportLen = 64;
 
+#pragma mark - Localisation
+// Same scheme as the web UI (web/i18n.js): Portuguese source strings are the keys and
+// Resources/web/i18n/<code>.js hold `I18N.add("<code>", { ...JSON... });`.
+static NSArray<NSString *> *kLangs(void) {
+  return @[ @"pt", @"en", @"es", @"fr", @"de", @"it", @"ru", @"zh", @"ja" ];
+}
+static NSString *gLang = @"pt";
+static NSDictionary<NSString *, NSString *> *gDict;
+
+static NSString *NormLang(NSString *tag) {
+  NSString *c = [[tag.lowercaseString componentsSeparatedByCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"-_"]] firstObject];
+  return [kLangs() containsObject:c] ? c : nil;
+}
+static NSString *SavedLang(void) { return NormLang([NSUserDefaults.standardUserDefaults stringForKey:@"lang"]); }
+static void LoadLang(void) {
+  NSString *lang = SavedLang();
+  if (!lang) {
+    for (NSString *t in NSLocale.preferredLanguages) { lang = NormLang(t); if (lang) break; }
+  }
+  gLang = lang ?: @"en";
+  gDict = nil;
+  if ([gLang isEqualToString:@"pt"]) return;
+  NSURL *u = [NSBundle.mainBundle.resourceURL URLByAppendingPathComponent:[NSString stringWithFormat:@"web/i18n/%@.js", gLang]];
+  NSString *js = [NSString stringWithContentsOfURL:u encoding:NSUTF8StringEncoding error:nil];
+  NSRange a = [js rangeOfString:@"{"], b = [js rangeOfString:@"}" options:NSBackwardsSearch];
+  if (!js || a.location == NSNotFound || b.location == NSNotFound) return;
+  NSData *d = [[js substringWithRange:NSMakeRange(a.location, NSMaxRange(b) - a.location)] dataUsingEncoding:NSUTF8StringEncoding];
+  id obj = [NSJSONSerialization JSONObjectWithData:d options:0 error:nil];
+  if ([obj isKindOfClass:NSDictionary.class]) gDict = obj;
+}
+static NSString *L(NSString *pt) {
+  NSString *t = gDict[pt];
+  return t.length ? t : pt;
+}
+// L with {name} placeholders
+static NSString *Lf(NSString *pt, NSDictionary<NSString *, id> *vars) {
+  NSMutableString *s = [L(pt) mutableCopy];
+  [vars enumerateKeysAndObjectsUsingBlock:^(NSString *k, id v, BOOL *stop) {
+    [s replaceOccurrencesOfString:[NSString stringWithFormat:@"{%@}", k] withString:[v description] options:0 range:NSMakeRange(0, s.length)];
+  }];
+  return s;
+}
+static NSString *Hex(unsigned v, int digits) { return [NSString stringWithFormat:@"0x%0*X", digits, v]; }
+
 #pragma mark - HID controller
 
 @class EdgeHID;
@@ -78,8 +122,8 @@ static NSString *TransportOf(IOHIDDeviceRef dev) {
     [self.delegate edgeHID:self emit:@{@"type" : @"error",
                                        @"code" : @(r),
                                        @"message" : (r == kIOReturnNotPermitted)
-                                           ? @"O macOS bloqueou o acesso ao controle. Libere o app em Ajustes do Sistema › Privacidade e Segurança › Monitoramento de Entrada."
-                                           : [NSString stringWithFormat:@"Falha ao abrir o controle (0x%08x).", r]}];
+                                           ? L(@"O macOS bloqueou o acesso ao controle. Libere o app em Ajustes do Sistema › Privacidade e Segurança › Monitoramento de Entrada.")
+                                           : Lf(@"Falha ao abrir o controle ({code}).", @{@"code" : Hex(r, 8)})}];
     return;
   }
   CFRetain(dev);
@@ -172,7 +216,7 @@ static NSString *TransportOf(IOHIDDeviceRef dev) {
   CFIndex len = kReportLen;
   IOReturn r = IOHIDDeviceGetReport(self.device, kIOHIDReportTypeFeature, rid, buf, &len);
   if (r != kIOReturnSuccess) {
-    if (err) *err = [NSString stringWithFormat:@"Falha ao ler report 0x%02X (0x%08x)", rid, r];
+    if (err) *err = Lf(@"Falha ao ler o report {id} ({code}).", @{@"id" : Hex(rid, 2), @"code" : Hex(r, 8)});
     return nil;
   }
   NSMutableArray *a = [NSMutableArray arrayWithCapacity:kReportLen];
@@ -182,14 +226,14 @@ static NSString *TransportOf(IOHIDDeviceRef dev) {
 
 - (BOOL)setReport:(IOHIDReportType)type bytes:(NSArray *)bytes error:(NSString **)err {
   if (bytes.count != kReportLen) {
-    if (err) *err = @"Report com tamanho inválido";
+    if (err) *err = L(@"Report com tamanho inválido.");
     return NO;
   }
   uint8_t buf[kReportLen];
   for (NSUInteger i = 0; i < kReportLen; i++) buf[i] = (uint8_t)[bytes[i] unsignedIntValue];
   IOReturn r = IOHIDDeviceSetReport(self.device, type, buf[0], buf, kReportLen);
   if (r != kIOReturnSuccess) {
-    if (err) *err = [NSString stringWithFormat:@"Falha ao escrever report 0x%02X (0x%08x)", buf[0], r];
+    if (err) *err = Lf(@"Falha ao escrever o report {id} ({code}).", @{@"id" : Hex(buf[0], 2), @"code" : Hex(r, 8)});
     return NO;
   }
   return YES;
@@ -237,41 +281,53 @@ static void HIDInput(void *ctx, IOReturn res, void *sender, IOHIDReportType type
   NSMenuItem *appItem = [NSMenuItem new];
   [bar addItem:appItem];
   NSMenu *appMenu = [NSMenu new];
-  [appMenu addItemWithTitle:@"Sobre o DualSense Edge Studio" action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""];
+  [appMenu addItemWithTitle:L(@"Sobre o DualSense Edge Studio") action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""];
   [appMenu addItem:NSMenuItem.separatorItem];
-  [appMenu addItemWithTitle:@"Ocultar" action:@selector(hide:) keyEquivalent:@"h"];
-  [appMenu addItemWithTitle:@"Encerrar DualSense Edge Studio" action:@selector(terminate:) keyEquivalent:@"q"];
+  [appMenu addItemWithTitle:L(@"Ocultar") action:@selector(hide:) keyEquivalent:@"h"];
+  [appMenu addItemWithTitle:L(@"Encerrar DualSense Edge Studio") action:@selector(terminate:) keyEquivalent:@"q"];
   appItem.submenu = appMenu;
 
   NSMenuItem *editItem = [NSMenuItem new];
   [bar addItem:editItem];
-  NSMenu *edit = [[NSMenu alloc] initWithTitle:@"Editar"];
-  [edit addItemWithTitle:@"Desfazer" action:@selector(undo:) keyEquivalent:@"z"];
-  [edit addItemWithTitle:@"Refazer" action:@selector(redo:) keyEquivalent:@"Z"];
+  NSMenu *edit = [[NSMenu alloc] initWithTitle:L(@"Editar")];
+  [edit addItemWithTitle:L(@"Desfazer") action:@selector(undo:) keyEquivalent:@"z"];
+  [edit addItemWithTitle:L(@"Refazer") action:@selector(redo:) keyEquivalent:@"Z"];
   [edit addItem:NSMenuItem.separatorItem];
-  [edit addItemWithTitle:@"Recortar" action:@selector(cut:) keyEquivalent:@"x"];
-  [edit addItemWithTitle:@"Copiar" action:@selector(copy:) keyEquivalent:@"c"];
-  [edit addItemWithTitle:@"Colar" action:@selector(paste:) keyEquivalent:@"v"];
-  [edit addItemWithTitle:@"Selecionar Tudo" action:@selector(selectAll:) keyEquivalent:@"a"];
+  [edit addItemWithTitle:L(@"Recortar") action:@selector(cut:) keyEquivalent:@"x"];
+  [edit addItemWithTitle:L(@"Copiar") action:@selector(copy:) keyEquivalent:@"c"];
+  [edit addItemWithTitle:L(@"Colar") action:@selector(paste:) keyEquivalent:@"v"];
+  [edit addItemWithTitle:L(@"Selecionar Tudo") action:@selector(selectAll:) keyEquivalent:@"a"];
   editItem.submenu = edit;
 
   NSMenuItem *winItem = [NSMenuItem new];
   [bar addItem:winItem];
-  NSMenu *win = [[NSMenu alloc] initWithTitle:@"Janela"];
-  [win addItemWithTitle:@"Minimizar" action:@selector(performMiniaturize:) keyEquivalent:@"m"];
-  [win addItemWithTitle:@"Fechar" action:@selector(performClose:) keyEquivalent:@"w"];
+  NSMenu *win = [[NSMenu alloc] initWithTitle:L(@"Janela")];
+  [win addItemWithTitle:L(@"Minimizar") action:@selector(performMiniaturize:) keyEquivalent:@"m"];
+  [win addItemWithTitle:L(@"Fechar") action:@selector(performClose:) keyEquivalent:@"w"];
   winItem.submenu = win;
   NSApp.windowsMenu = win;
   NSApp.mainMenu = bar;
 }
 
+// Tells the page which language to use (read by web/i18n.js before anything renders).
+- (void)injectLang {
+  WKUserContentController *ucc = self.web.configuration.userContentController;
+  [ucc removeAllUserScripts];
+  NSDictionary *info = @{@"saved" : SavedLang() ?: @"", @"system" : NSLocale.preferredLanguages ?: @[]};
+  NSData *json = [NSJSONSerialization dataWithJSONObject:info options:0 error:nil];
+  NSString *src = [NSString stringWithFormat:@"window.EdgeLang = %@;", [[NSString alloc] initWithData:json encoding:NSUTF8StringEncoding]];
+  [ucc addUserScript:[[WKUserScript alloc] initWithSource:src injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:YES]];
+}
+
 - (void)applicationDidFinishLaunching:(NSNotification *)n {
+  LoadLang();
   [self buildMenu];
 
   WKWebViewConfiguration *cfg = [WKWebViewConfiguration new];
   [cfg.userContentController addScriptMessageHandlerWithReply:self contentWorld:WKContentWorld.pageWorld name:@"hid"];
   self.web = [[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 1320, 860) configuration:cfg];
   self.web.navigationDelegate = self;
+  [self injectLang];
   [self.web setValue:@NO forKey:@"drawsBackground"];
 #ifdef DEBUG
   if (@available(macOS 13.3, *)) self.web.inspectable = YES;
@@ -325,20 +381,20 @@ static void HIDInput(void *ctx, IOReturn res, void *sender, IOHIDReportType type
   self.statusItem = [NSStatusBar.systemStatusBar statusItemWithLength:NSVariableStatusItemLength];
   NSMenu *menu = [NSMenu new];
   menu.autoenablesItems = NO;
-  self.miBattery = [menu addItemWithTitle:@"Controle desconectado" action:nil keyEquivalent:@""];
+  self.miBattery = [menu addItemWithTitle:L(@"Controle desconectado") action:nil keyEquivalent:@""];
   self.miBattery.enabled = NO;
   self.miProfile = [menu addItemWithTitle:@"" action:nil keyEquivalent:@""];
   self.miProfile.enabled = NO; self.miProfile.hidden = YES;
   [menu addItem:NSMenuItem.separatorItem];
-  NSMenuItem *open = [menu addItemWithTitle:@"Abrir DualSense Edge Studio" action:@selector(showMainWindow) keyEquivalent:@""];
+  NSMenuItem *open = [menu addItemWithTitle:L(@"Abrir DualSense Edge Studio") action:@selector(showMainWindow) keyEquivalent:@""];
   open.target = self;
   [menu addItem:NSMenuItem.separatorItem];
-  self.miKeep = [menu addItemWithTitle:@"Continuar na barra de menus ao fechar a janela" action:@selector(toggleKeep) keyEquivalent:@""];
+  self.miKeep = [menu addItemWithTitle:L(@"Continuar na barra de menus ao fechar a janela") action:@selector(toggleKeep) keyEquivalent:@""];
   self.miKeep.target = self;
-  self.miWarn = [menu addItemWithTitle:@"Avisar quando a bateria estiver fraca" action:@selector(toggleWarn) keyEquivalent:@""];
+  self.miWarn = [menu addItemWithTitle:L(@"Avisar quando a bateria estiver fraca") action:@selector(toggleWarn) keyEquivalent:@""];
   self.miWarn.target = self;
   [menu addItem:NSMenuItem.separatorItem];
-  NSMenuItem *quit = [menu addItemWithTitle:@"Encerrar" action:@selector(terminate:) keyEquivalent:@"q"];
+  NSMenuItem *quit = [menu addItemWithTitle:L(@"Encerrar") action:@selector(terminate:) keyEquivalent:@"q"];
   quit.target = NSApp;
   self.statusItem.menu = menu;
   [self refreshStatusItem];
@@ -370,16 +426,15 @@ static void HIDInput(void *ctx, IOReturn res, void *sender, IOHIDReportType type
   if (self.connected && self.batLevel >= 0 && self.batLevel <= 20 && self.batState == 0)
     [t addAttribute:NSForegroundColorAttributeName value:NSColor.systemRedColor range:NSMakeRange(0, t.length)];
   b.attributedTitle = t;
-  b.toolTip = self.connected ? @"DualSense Edge conectado" : @"DualSense Edge desconectado";
+  b.toolTip = self.connected ? L(@"DualSense Edge conectado") : L(@"DualSense Edge desconectado");
 
-  if (!self.connected) self.miBattery.title = @"Controle desconectado";
-  else if (self.batLevel < 0) self.miBattery.title = @"DualSense Edge conectado";
-  else {
-    NSString *st = self.batState == 1 ? @" · carregando" : self.batState == 2 ? @" · carga completa" : @"";
-    self.miBattery.title = [NSString stringWithFormat:@"Bateria: %d%%%@", self.batLevel, st];
-  }
+  if (!self.connected) self.miBattery.title = L(@"Controle desconectado");
+  else if (self.batLevel < 0) self.miBattery.title = L(@"DualSense Edge conectado");
+  else if (self.batState == 1) self.miBattery.title = Lf(@"Bateria: {n}% · carregando", @{@"n" : @(self.batLevel)});
+  else if (self.batState == 2) self.miBattery.title = Lf(@"Bateria: {n}% · carga completa", @{@"n" : @(self.batLevel)});
+  else self.miBattery.title = Lf(@"Bateria: {n}%", @{@"n" : @(self.batLevel)});
   self.miProfile.hidden = !(self.connected && self.activeProfile.length);
-  self.miProfile.title = self.activeProfile.length ? [NSString stringWithFormat:@"Perfil ativo: %@", self.activeProfile] : @"";
+  self.miProfile.title = self.activeProfile.length ? Lf(@"Perfil ativo: {name}", @{@"name" : self.activeProfile}) : @"";
   self.miKeep.state = [self keepInMenuBar] ? NSControlStateValueOn : NSControlStateValueOff;
   self.miWarn.state = [self warnBattery] ? NSControlStateValueOn : NSControlStateValueOff;
 }
@@ -409,10 +464,10 @@ static void HIDInput(void *ctx, IOReturn res, void *sender, IOHIDReportType type
   if (state == 0 && [self warnBattery]) {
     if (level <= 10 && !self.warned10) {
       self.warned10 = self.warned20 = YES;
-      [self notify:@"Bateria do DualSense Edge quase no fim" body:[NSString stringWithFormat:@"Restam cerca de %d%%. Conecte o cabo para carregar.", level]];
+      [self notify:L(@"Bateria do DualSense Edge quase no fim") body:Lf(@"Restam cerca de {n}%. Conecte o cabo para carregar.", @{@"n" : @(level)})];
     } else if (level <= 20 && !self.warned20) {
       self.warned20 = YES;
-      [self notify:@"Bateria do DualSense Edge fraca" body:[NSString stringWithFormat:@"Restam cerca de %d%%.", level]];
+      [self notify:L(@"Bateria do DualSense Edge fraca") body:Lf(@"Restam cerca de {n}%.", @{@"n" : @(level)})];
     }
   }
   [self refreshStatusItem];
@@ -484,6 +539,21 @@ static void HIDInput(void *ctx, IOReturn res, void *sender, IOHIDReportType type
     reply(@YES, nil);
     return;
   }
+  if ([cmd isEqualToString:@"setLang"]) {
+    NSString *code = NormLang([m[@"lang"] isKindOfClass:NSString.class] ? m[@"lang"] : @"");
+    if (code) [NSUserDefaults.standardUserDefaults setObject:code forKey:@"lang"];
+    else [NSUserDefaults.standardUserDefaults removeObjectForKey:@"lang"];
+    LoadLang();
+    [self buildMenu];
+    [NSStatusBar.systemStatusBar removeStatusItem:self.statusItem];
+    int level = self.batLevel, st = self.batState;
+    [self buildStatusItem];
+    self.batLevel = level; self.batState = st;
+    [self refreshStatusItem];
+    [self injectLang];  // the page reloads itself next
+    reply(@YES, nil);
+    return;
+  }
   if ([cmd isEqualToString:@"resetYaw"]) {
     self.hid.yaw = 0;
     reply(@YES, nil);
@@ -544,8 +614,8 @@ static void HIDInput(void *ctx, IOReturn res, void *sender, IOHIDReportType type
 
   // ---- Controller I/O ----
   if (!self.hid.device) {
-    reply(nil, self.hid.bluetoothOnly ? @"Conecte o DualSense Edge por cabo USB (Bluetooth não permite editar perfis)."
-                                      : @"Controle não conectado.");
+    reply(nil, self.hid.bluetoothOnly ? L(@"Conecte o DualSense Edge por cabo USB (Bluetooth não permite editar perfis).")
+                                      : L(@"Controle não conectado."));
     return;
   }
 
@@ -573,7 +643,7 @@ static void HIDInput(void *ctx, IOReturn res, void *sender, IOHIDReportType type
     for (NSArray *r in reports) {
       int rid = r.count ? [r[0] intValue] : -1;
       if (!((rid >= 0x60 && rid <= 0x63) || rid == 0x68)) {
-        reply(nil, [NSString stringWithFormat:@"Report 0x%02X não permitido", rid]);
+        reply(nil, Lf(@"Report {id} não permitido.", @{@"id" : Hex(rid, 2)}));
         return;
       }
     }
@@ -603,7 +673,7 @@ static void HIDInput(void *ctx, IOReturn res, void *sender, IOHIDReportType type
 
   if ([cmd isEqualToString:@"gc"]) {
     GCController *c = [self dualSense];
-    if (!c) { reply(nil, @"O macOS ainda não liberou o controle para o app. Clique na janela do app e tente de novo."); return; }
+    if (!c) { reply(nil, L(@"O macOS ainda não liberou o controle para o app. Clique na janela do app e tente de novo.")); return; }
     NSArray *light = m[@"light"];
     if ([light isKindOfClass:NSArray.class] && light.count == 3 && c.light) {
       c.light.color = [[GCColor alloc] initWithRed:[light[0] floatValue] green:[light[1] floatValue] blue:[light[2] floatValue]];
@@ -629,7 +699,7 @@ static void HIDInput(void *ctx, IOReturn res, void *sender, IOHIDReportType type
     // controller, so it is safe; still, only report 0x02 is accepted.
     NSArray *b = m[@"bytes"];
     if (![b isKindOfClass:[NSArray class]] || b.count < 2 || b.count > kReportLen || [b[0] intValue] != 0x02) {
-      reply(nil, @"Só o report de saída 0x02 é permitido");
+      reply(nil, L(@"Só o report de saída 0x02 é permitido."));
       return;
     }
     NSMutableArray *full = [b mutableCopy];
@@ -639,7 +709,7 @@ static void HIDInput(void *ctx, IOReturn res, void *sender, IOHIDReportType type
     return;
   }
 
-  reply(nil, [NSString stringWithFormat:@"Comando desconhecido: %@", cmd]);
+  reply(nil, Lf(@"Comando desconhecido: {cmd}", @{@"cmd" : cmd ?: @""}));
 }
 
 @end

@@ -8,11 +8,17 @@ Este guia explica cada parte do DualSense Edge Studio. Para instalar, veja o [RE
 - **Biblioteca**: perfis guardados no Mac, fora do controle. Dá para criar, duplicar, buscar, importar e exportar.
 - **Rascunho**: tudo o que você muda nas abas fica só no app até você clicar em **Gravar em □ / ✕ / ○** (controle) ou **Salvar na biblioteca** (⌘S). A barra inferior avisa quando há alterações não gravadas, e **Descartar** volta ao estado anterior.
 
+## Idioma
+
+O app abre no idioma do sistema (*Ajustes do Sistema › Geral › Idioma e Região*) quando ele é um dos 9 disponíveis: português, inglês, espanhol, francês, alemão, italiano, russo, chinês simplificado e japonês. Para outros idiomas, ele abre em inglês.
+
+Para trocar, clique no botão 🌐 no canto superior direito e escolha o idioma. A escolha fica salva; **Idioma do sistema** volta a seguir o macOS. A janela recarrega na hora (se houver alterações não gravadas, o app pergunta antes), e os menus, a barra de menus e as notificações também mudam.
+
 ## Tela inicial
 
 ![Tela inicial](images/home.png)
 
-A barra lateral mostra os 4 slots do controle, o botão **Novo** (⌘N), a **Biblioteca** e o **Backup**. No topo ficam as abas (⌘1–⌘7), a bateria, o estado da conexão, o botão de **Comparar perfis** e o botão de recarregar os slots.
+A barra lateral mostra os 4 slots do controle, o botão **Novo** (⌘N), a **Biblioteca** e o **Backup**. No topo ficam as abas (⌘1–⌘7), a bateria, o estado da conexão, o botão de **Comparar perfis**, o botão de recarregar os slots e o seletor de idioma.
 
 ## Botões (⌘1)
 

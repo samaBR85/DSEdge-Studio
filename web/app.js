@@ -34,7 +34,7 @@ function toast(msg, kind = "") {
   $("#toasts").append(t);
   setTimeout(() => t.remove(), kind === "err" ? 6000 : 3200);
 }
-function confirmDialog(title, body, okText = "Confirmar", danger = false) {
+function confirmDialog(title, body, okText = T("Confirmar"), danger = false) {
   return new Promise((resolve) => {
     $("#modal-title").textContent = title;
     $("#modal-body").textContent = body;
@@ -69,7 +69,7 @@ function changeCount() {
 function summary(p) {
   const nm = (j) => Proto.STICK_PRESETS[j?.profileId]?.name ?? "?";
   const remaps = (p.buttonMapping?.buttons || []).filter((b, i) => b !== i).length;
-  return `${nm(p.leftJoystick)} / ${nm(p.rightJoystick)}${remaps ? ` · ${remaps} remap.` : ""}`;
+  return `${nm(p.leftJoystick)} / ${nm(p.rightJoystick)}${remaps ? " · " + T("{n} remap.", { n: remaps }) : ""}`;
 }
 
 // ============================================================ persistence
@@ -87,13 +87,13 @@ function autosaveLib() {
     const i = state.library.findIndex((p) => p.id === state.selected.id);
     if (i < 0) return;
     state.library[i] = Proto.clone(state.draft);
-    await saveLibrary().catch((e) => toast("Falha ao salvar: " + e.message, "err"));
+    await saveLibrary().catch((e) => toast(T("Falha ao salvar: {msg}", { msg: e.message }), "err"));
     renderDrawer();
   }, 350);
 }
 
 function normalize(p) {
-  const out = Object.assign(Proto.newProfile(p.label || "Perfil"), p);
+  const out = Object.assign(Proto.newProfile(p.label || T("Perfil")), p);
   for (const k of ["leftJoystick", "rightJoystick"]) {
     const j = out[k] || {};
     const pid = Proto.STICK_PRESETS[j.profileId] ? j.profileId : 0;
@@ -115,55 +115,55 @@ async function readProfiles(silent = true) {
     diag(`slots: ${state.slots.map((p) => (p.empty ? "<vazio>" : p.label)).join(" | ")}`);
     if (state.selected?.kind === "slot" && !isDirty()) openSlot(state.selected.selector, true);
     renderChrome();
-    if (!silent) toast("Perfis lidos do controle", "ok");
-  } catch (e) { toast("Não foi possível ler os perfis: " + e.message, "err"); }
+    if (!silent) toast(T("Perfis lidos do controle"), "ok");
+  } catch (e) { toast(T("Não foi possível ler os perfis: {msg}", { msg: e.message }), "err"); }
 }
 
 async function writeToSlot(sel) {
-  if (!state.status.connected) return toast("Conecte o controle pelo cabo USB para gravar.", "err");
+  if (!state.status.connected) return toast(T("Conecte o controle pelo cabo USB para gravar."), "err");
   if (!state.draft) return;
   const g = SLOT_GLYPH[sel];
   const cur = slotOf(sel);
   const same = state.selected?.kind === "slot" && state.selected.selector === sel;
   if (cur && !cur.empty && !same) {
-    const ok = await confirmDialog(`Substituir o slot FN + ${{ sq: "□", crs: "✕", cir: "○" }[g]}?`,
-      `“${cur.label}” será substituído por “${state.draft.label || "Perfil"}”. Se quiser guardá-lo, salve-o na biblioteca antes.`, "Substituir");
+    const ok = await confirmDialog(T("Substituir o slot FN + {g}?", { g: { sq: "□", crs: "✕", cir: "○" }[g] }),
+      T("“{old}” será substituído por “{new}”. Se quiser guardá-lo, salve-o na biblioteca antes.", { old: cur.label, new: state.draft.label || T("Perfil") }), T("Substituir"));
     if (!ok) return;
   }
   state.busy = true; renderFoot();
   try {
-    await Backup.record(sel, `antes de gravar “${state.draft.label || "Perfil"}”`);
+    await Backup.record(sel, T("antes de gravar “{name}”", { name: state.draft.label || T("Perfil") }));
     await call("writeFeatures", { reports: Proto.encode(state.draft, sel) });
     call("rumble", { strength: 90, ms: 180 }).catch(() => {});
     state.slots = Proto.parseAll(await call("readProfiles"));
     const w = slotOf(sel);
-    const ok = w && !w.empty && w.label === (state.draft.label || "Perfil").slice(0, 40);
+    const ok = w && !w.empty && w.label === (state.draft.label || T("Perfil")).slice(0, 40);
     if (isLib()) { state.original = Proto.clone(state.draft); }
     else openSlot(sel, true);
-    toast(ok ? `“${state.draft.label}” gravado no controle` : "Gravado, mas a releitura não confere — clique em recarregar.", ok ? "ok" : "err");
-  } catch (e) { toast("Falha ao gravar: " + e.message, "err"); }
+    toast(ok ? T("“{name}” gravado no controle", { name: state.draft.label }) : T("Gravado, mas a releitura não confere — clique em recarregar."), ok ? "ok" : "err");
+  } catch (e) { toast(T("Falha ao gravar: {msg}", { msg: e.message }), "err"); }
   state.busy = false;
   renderAll();
 }
 
 async function clearSlot(sel) {
   const p = slotOf(sel);
-  if (!(await confirmDialog("Limpar este slot do controle?", `“${p?.label || ""}” será apagado do controle. Perfis da biblioteca não são afetados.`, "Limpar slot", true))) return;
+  if (!(await confirmDialog(T("Limpar este slot do controle?"), T("“{name}” será apagado do controle. Perfis da biblioteca não são afetados.", { name: p?.label || "" }), T("Limpar slot"), true))) return;
   try {
-    await Backup.record(sel, "antes de limpar o slot");
+    await Backup.record(sel, T("antes de limpar o slot"));
     await call("writeFeatures", { reports: [Proto.clearReport(sel)] });
     await new Promise((r) => setTimeout(r, 150));
     state.slots = Proto.parseAll(await call("readProfiles"));
     if (state.selected?.kind === "slot" && state.selected.selector === sel) goHome();
-    toast("Slot limpo", "ok");
-  } catch (e) { toast("Falha ao limpar: " + e.message, "err"); }
+    toast(T("Slot limpo"), "ok");
+  } catch (e) { toast(T("Falha ao limpar: {msg}", { msg: e.message }), "err"); }
   renderAll();
 }
 
 // ============================================================ selection
 async function guard() {
   if (!isDirty()) return true;
-  return confirmDialog("Descartar alterações?", "As alterações deste slot ainda não foram gravadas no controle.", "Descartar", true);
+  return confirmDialog(T("Descartar alterações?"), T("As alterações deste slot ainda não foram gravadas no controle."), T("Descartar"), true);
 }
 async function trySelect(fn) { if (await guard()) fn(); }
 
@@ -172,7 +172,7 @@ function openSlot(sel, keep = false) {
   if (!p) return;
   state.selected = { kind: "slot", selector: sel };
   if (p.empty) {
-    state.original = Proto.newProfile(`Perfil ${{ 0x60: "Quadrado", 0x61: "Xis", 0x62: "Círculo" }[sel] || ""}`.trim());
+    state.original = Proto.newProfile({ 0x60: T("Perfil Quadrado"), 0x61: T("Perfil Xis"), 0x62: T("Perfil Círculo") }[sel] || T("Perfil"));
     state.original.profileButtonSelector = sel;
   } else state.original = Proto.clone(p);
   state.draft = Proto.clone(state.original);
@@ -194,7 +194,7 @@ function goHome() { state.selected = state.draft = state.original = null; state.
 
 async function newProfile(base) {
   if (!(await guard())) return;
-  const p = base ? Proto.clone(base) : Proto.newProfile(uniqueName("Novo perfil"));
+  const p = base ? Proto.clone(base) : Proto.newProfile(uniqueName(T("Novo perfil")));
   p.id = Proto.randomId();
   delete p.raw; delete p.empty;
   p.profileButtonSelector = 0;
@@ -205,7 +205,7 @@ async function newProfile(base) {
   state.tab = "buttons";
   renderAll();
   setTimeout(() => { $("#name").focus(); $("#name").select(); }, 30);
-  toast("Perfil criado na biblioteca. Grave no controle quando quiser.", "ok");
+  toast(T("Perfil criado na biblioteca. Grave no controle quando quiser."), "ok");
 }
 function uniqueName(base) {
   const names = new Set(state.library.map((p) => p.label));
@@ -222,7 +222,7 @@ function changed() {
 let lastMenuInfo = null;
 function syncMenuInfo() {
   const p = state.activeSelector != null ? slotOf(state.activeSelector) : null;
-  const txt = p && state.status.connected ? `${p.empty ? "vazio" : p.label || "Sem nome"} (FN + ${{ 0x63: "△", 0x60: "□", 0x61: "✕", 0x62: "○" }[state.activeSelector]})` : "";
+  const txt = p && state.status.connected ? `${p.empty ? T("vazio") : p.label || T("Sem nome")} (FN + ${{ 0x63: "△", 0x60: "□", 0x61: "✕", 0x62: "○" }[state.activeSelector]})` : "";
   if (txt === lastMenuInfo) return;
   lastMenuInfo = txt;
   if (!Native.simulated) Native.call("menuInfo", { profile: txt }).catch(() => {});
@@ -232,9 +232,9 @@ function renderRail() {
   $("#rail-slots").innerHTML = ORDER.map((sel) => {
     const p = slotOf(sel);
     const isSel = state.selected?.kind === "slot" && state.selected.selector === sel;
-    const nm = !state.slots ? "—" : sel === 0x63 ? "Padrão 🔒" : p?.empty ? "Vazio" : p?.label || "Sem nome";
+    const nm = !state.slots ? "—" : sel === 0x63 ? T("Padrão 🔒") : p?.empty ? T("Vazio") : p?.label || T("Sem nome");
     return `<button class="rslot ${isSel ? "sel" : ""} ${!state.slots ? "off" : ""} ${p?.empty ? "empty" : ""}" data-sel="${sel}" title="${esc(p?.label || "")}">
-      ${state.activeSelector === sel && state.slots ? `<span class="act" title="Perfil ativo"></span>` : ""}
+      ${state.activeSelector === sel && state.slots ? `<span class="act" title="${T("Perfil ativo")}"></span>` : ""}
       <div class="keys">${G("fn", 15)}${G(SLOT_GLYPH[sel], 26)}</div><div class="nm">${esc(nm)}</div></button>`;
   }).join("");
   $$("#rail-slots .rslot").forEach((b) => (b.onclick = () => trySelect(() => openSlot(Number(b.dataset.sel)))));
@@ -248,15 +248,15 @@ function renderDrawer() {
   const q = $("#lib-search").value.trim().toLowerCase();
   const items = state.library.filter((p) => !q || (p.label || "").toLowerCase().includes(q));
   const list = $("#lib-list");
-  if (!state.library.length) { list.innerHTML = `<div class="lib-empty">Nenhum perfil ainda. Crie um novo — ele fica salvo aqui e pode ser gravado no controle depois.</div>`; return; }
+  if (!state.library.length) { list.innerHTML = `<div class="lib-empty">${T("Nenhum perfil ainda. Crie um novo — ele fica salvo aqui e pode ser gravado no controle depois.")}</div>`; return; }
   list.innerHTML = items.map((p) => {
     const remaps = p.buttonMapping.buttons.filter((b, i) => b !== i).length;
     return `<div class="lib-item ${isLib() && state.selected.id === p.id ? "sel" : ""}" data-id="${esc(p.id)}">
       <div class="ico">${G(remaps ? "PL" : "R3", 18)}</div>
-      <div class="tx"><b>${esc(p.label || "Sem nome")}</b><span>${esc(summary(p))}</span></div>
-      <button class="icon-btn" data-act="dup" title="Duplicar"><svg viewBox="0 0 24 24"><path d="M8 8h12v12H8zM4 16V4h12"/></svg></button>
-      <button class="icon-btn" data-act="del" title="Excluir"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button></div>`;
-  }).join("") || `<div class="lib-empty">Nada encontrado.</div>`;
+      <div class="tx"><b>${esc(p.label || T("Sem nome"))}</b><span>${esc(summary(p))}</span></div>
+      <button class="icon-btn" data-act="dup" title="${T("Duplicar")}"><svg viewBox="0 0 24 24"><path d="M8 8h12v12H8zM4 16V4h12"/></svg></button>
+      <button class="icon-btn" data-act="del" title="${T("Excluir")}"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button></div>`;
+  }).join("") || `<div class="lib-empty">${T("Nada encontrado.")}</div>`;
   $$("#lib-list .lib-item").forEach((el) => {
     el.onclick = (e) => {
       const id = el.dataset.id, act = e.target.closest("[data-act]")?.dataset.act;
@@ -272,15 +272,15 @@ function renderTop() {
   const name = $("#name");
   name.disabled = !d;
   if (document.activeElement !== name) name.value = d ? d.label : "";
-  name.placeholder = d ? "Nome do perfil" : "DualSense Edge Studio";
+  name.placeholder = d ? T("Nome do perfil") : "DualSense Edge Studio";
   let src = "";
   if (d && state.selected.kind === "slot") {
     const sel = state.selected.selector, p = slotOf(sel);
-    src = `${G("fn", 13)}${G(SLOT_GLYPH[sel], 14)} <span>slot do controle${p?.empty ? " (vazio)" : ""}${state.activeSelector === sel ? " · ativo" : ""}${sel === 0x63 ? " · somente leitura" : ""}</span>`;
-    if (sel !== 0x63 && !p?.empty) src += ` · <a href="#" id="clear-slot" style="color:var(--bad)">limpar slot</a>`;
+    src = `${G("fn", 13)}${G(SLOT_GLYPH[sel], 14)} <span>${T("slot do controle")}${p?.empty ? " " + T("(vazio)") : ""}${state.activeSelector === sel ? " · " + T("ativo") : ""}${sel === 0x63 ? " · " + T("somente leitura") : ""}</span>`;
+    if (sel !== 0x63 && !p?.empty) src += ` · <a href="#" id="clear-slot" style="color:var(--bad)">${T("limpar slot")}</a>`;
   } else if (d) {
-    src = `<span>📚 Biblioteca do app</span>`;
-  } else src = `<span>Selecione um slot ou crie um perfil</span>`;
+    src = `<span>📚 ${T("Biblioteca do app")}</span>`;
+  } else src = `<span>${T("Selecione um slot ou crie um perfil")}</span>`;
   $("#source").innerHTML = src;
   const cs = $("#clear-slot");
   if (cs) cs.onclick = (e) => { e.preventDefault(); clearSlot(state.selected.selector); };
@@ -289,7 +289,7 @@ function renderTop() {
   const st = state.status;
   const conn = $("#conn");
   conn.className = "pill " + (st.connected ? "on" : st.bluetoothOnly ? "warn" : "");
-  $("#conn-text").textContent = st.connected ? `USB${Native.simulated ? " (simulado)" : ""}` : st.bluetoothOnly ? "Bluetooth — use o cabo" : "Desconectado";
+  $("#conn-text").textContent = st.connected ? (Native.simulated ? T("USB (simulado)") : "USB") : st.bluetoothOnly ? T("Bluetooth — use o cabo") : T("Desconectado");
   $("#btn-refresh").disabled = !st.connected;
 }
 
@@ -310,17 +310,17 @@ function renderFoot() {
   const st = $("#foot-status");
   if (isLib()) {
     st.className = "foot-status ok";
-    st.textContent = `✓ Salvo na biblioteca${state.status.connected ? "" : " · conecte o controle por USB para gravar"}`;
+    st.textContent = "✓ " + (state.status.connected ? T("Salvo na biblioteca") : T("Salvo na biblioteca · conecte o controle por USB para gravar"));
   } else if (isDirty()) {
     st.className = "foot-status warn";
     const n = changeCount();
-    st.textContent = `● ${n} ${n === 1 ? "alteração não gravada" : "alterações não gravadas"} no controle`;
+    st.textContent = "● " + (n === 1 ? T("{n} alteração não gravada no controle", { n }) : T("{n} alterações não gravadas no controle", { n }));
   } else {
     st.className = "foot-status";
-    st.textContent = "Igual ao que está no controle";
+    st.textContent = T("Igual ao que está no controle");
   }
   $("#btn-revert").classList.toggle("hidden", !isDirty());
-  $("#btn-save").textContent = isLib() ? "Duplicar" : "Salvar na biblioteca";
+  $("#btn-save").textContent = isLib() ? T("Duplicar") : T("Salvar na biblioteca");
   const canWrite = state.status.connected && !state.busy;
   $("#write-group").classList.toggle("disabled", !canWrite);
   const cur = state.selected.kind === "slot" ? state.selected.selector : null;
@@ -341,8 +341,8 @@ function renderHome() {
   const hs = $("#home-slots");
   hs.innerHTML = state.slots ? ORDER.map((sel) => {
     const p = slotOf(sel);
-    return `<button class="home-slot" data-sel="${sel}">${G("fn", 13)}${G(SLOT_GLYPH[sel], 20)} ${esc(sel === 0x63 ? "Padrão" : p?.empty ? "Vazio" : p?.label)}</button>`;
-  }).join("") : `<span class="dim">${state.status.bluetoothOnly ? "Controle conectado por Bluetooth — ligue o cabo USB para ler e gravar perfis." : "Controle não conectado — você ainda pode criar perfis na biblioteca."}</span>`;
+    return `<button class="home-slot" data-sel="${sel}">${G("fn", 13)}${G(SLOT_GLYPH[sel], 20)} ${esc(sel === 0x63 ? T("Padrão") : p?.empty ? T("Vazio") : p?.label)}</button>`;
+  }).join("") : `<span class="dim">${state.status.bluetoothOnly ? T("Controle conectado por Bluetooth — ligue o cabo USB para ler e gravar perfis.") : T("Controle não conectado — você ainda pode criar perfis na biblioteca.")}</span>`;
   $$(".home-slot").forEach((b) => (b.onclick = () => openSlot(Number(b.dataset.sel))));
 }
 
@@ -408,7 +408,7 @@ function renderButtons() {
       : `<path d="M${x},${y + 24} H${Math.max(tx + 24, 872)} L${tx},${ty}" fill="none" stroke="${col}" stroke-width="${mapped ? 1.6 : 1}"/>`;
     lines += `<circle cx="${tx}" cy="${ty}" r="3" fill="${col}"/>`;
     const isPaddleNone = idx >= 14 && tgt === idx;
-    const target = !mapped ? `<span class="dim">${isPaddleNone ? "Sem função" : "Padrão"}</span>` : `${G(PHYS[tgt]?.g || "none", 18)}<b>${esc(PHYS[tgt]?.name || "Código " + tgt)}</b>`;
+    const target = !mapped ? `<span class="dim">${isPaddleNone ? T("Sem função") : T("Padrão")}</span>` : `${G(PHYS[tgt]?.g || "none", 18)}<b>${esc(PHYS[tgt]?.name || T("Código {n}", { n: tgt }))}</b>`;
     chips += `<button class="callout ${side === "r" ? "r" : ""} ${mapped ? "mapped" : ""} ${state.picker === idx ? "sel" : ""} ${pressed.has(idx) ? "pressed" : ""}" data-idx="${idx}" style="left:${x}px;top:${y}px" title="${esc(PHYS[idx].name)}">
       ${G(PHYS[idx].g, 24)}<span class="arrow">${side === "r" ? "←" : "→"}</span><span class="tgt">${target}</span></button>`;
   };
@@ -424,27 +424,27 @@ function renderButtons() {
     const left = isLeft ? ST.lx + ST.chipW + 12 : ST.rx - PW - 12;
     const tile = (t, label) => `<button class="tile ${b[idx] === t ? "on" : ""} ${t === idx ? "def" : ""}" data-t="${t}">${G(PHYS[t].g, 20)}<span>${esc(label || PHYS[t].short)}</span></button>`;
     const groups = [
-      ["Ação", [7, 6, 5, 4]],                 // △ □ ✕ ○
-      ["Ombros", [11, 12, 13, 8, 9, 10]],     // L1 L2 L3 R1 R2 R3
-      ["Direcional", [0, 2, 3, 1]],           // ↑ ↓ ← →
+      [T("Ação"), [7, 6, 5, 4]],                 // △ □ ✕ ○
+      [T("Ombros"), [11, 12, 13, 8, 9, 10]],     // L1 L2 L3 R1 R2 R3
+      [T("Direcional"), [0, 2, 3, 1]],           // ↑ ↓ ← →
     ];
-    const none = `<button class="tile ${b[idx] === idx ? "on" : ""}" data-t="${idx}">${G("none", 20)}<span>Sem função</span></button>`;
+    const none = `<button class="tile ${b[idx] === idx ? "on" : ""}" data-t="${idx}">${G("none", 20)}<span>${T("Sem função")}</span></button>`;
     const rows = groups.map(([cap, ts], gi) => {
       const cells = ts.map((t) => tile(t));
       if (idx >= 14 && gi === groups.length - 1) cells.push(none);   // paddles can also be disabled
       return `<div class="pk-cap">${cap}</div><div class="pk-row" style="grid-template-columns:repeat(${cells.length},1fr)">${cells.join("")}</div>`;
     }).join("");
     picker = `<div class="picker ${performance.now() - pickerOpenedAt < 120 ? "anim" : ""}" style="left:${left}px;top:${top}px;width:${PW}px">
-      <div class="picker-head">${G(PHYS[idx].g, 22)}<b>${esc(PHYS[idx].name)}</b><span class="dim">ou aperte o botão desejado no controle</span></div>
+      <div class="picker-head">${G(PHYS[idx].g, 22)}<b>${esc(PHYS[idx].name)}</b><span class="dim">${T("ou aperte o botão desejado no controle")}</span></div>
       ${rows}</div>`;
   }
 
   stage.innerHTML = `<div class="ctrl-box">${controllerSvg({ ...COLORS, hl })}</div>
     <svg class="lines" width="${ST.w}" height="${ST.h}">${lines}</svg>${chips}${picker}
-    <div class="stage-hint">Clique num botão do desenho ou num rótulo para mudar a função</div>
+    <div class="stage-hint">${T("Clique num botão do desenho ou num rótulo para mudar a função")}</div>
     <div class="stage-actions">
-      <button class="btn sm ghost" id="swap-xo">${G("crs", 16)} ⇄ ${G("cir", 16)} Trocar ✕ e ○</button>
-      <button class="btn sm ghost" id="reset-map">Restaurar padrão</button>
+      <button class="btn sm ghost" id="swap-xo">${G("crs", 16)} ⇄ ${G("cir", 16)} ${T("Trocar ✕ e ○")}</button>
+      <button class="btn sm ghost" id="reset-map">${T("Restaurar padrão")}</button>
     </div>`;
 
   $$(".callout", stage).forEach((c) => (c.onclick = (e) => { e.stopPropagation(); togglePicker(Number(c.dataset.idx)); }));
@@ -455,7 +455,7 @@ function renderButtons() {
     e.stopPropagation();
     const part = e.target.closest("[data-part]")?.dataset.part;
     if (part in PART_TO_INDEX) togglePicker(PART_TO_INDEX[part]);
-    else if (part) toast("Esse botão não pode ser remapeado no perfil do controle.");
+    else if (part) toast(T("Esse botão não pode ser remapeado no perfil do controle."));
   };
   $("#swap-xo").onclick = () => { [b[4], b[5]] = [b[5], b[4]]; changed(); renderButtons(); };
   $("#reset-map").onclick = () => { state.draft.buttonMapping.buttons = Array.from({ length: 16 }, (_, i) => i); state.picker = null; changed(); renderButtons(); };
@@ -506,14 +506,14 @@ function renderStick(side) {
   const dz = Proto.deadzoneOf(j.curveValues);
   const fixed = Proto.STICK_PRESETS[j.profileId].adj.every((a) => a.length === 1);
   card.innerHTML = `
-    <h4>${G(side === "left" ? "L3" : "R3", 22)} Analógico ${side === "left" ? "esquerdo" : "direito"}<span class="sub"><button class="btn sm ghost" data-copy>Copiar para o ${side === "left" ? "direito" : "esquerdo"}</button></span></h4>
+    <h4>${G(side === "left" ? "L3" : "R3", 22)} ${side === "left" ? T("Analógico esquerdo") : T("Analógico direito")}<span class="sub"><button class="btn sm ghost" data-copy>${side === "left" ? T("Copiar para o direito") : T("Copiar para o esquerdo")}</button></span></h4>
     <div class="preset-row">${Proto.STICK_PRESETS.map((p) => `<button class="chip ${p.id === j.profileId ? "on" : ""}" data-p="${p.id}">${p.name}</button>`).join("")}</div>
     <div class="stick-body"><div class="curve-host"></div>
       <div class="controls">
-        <div class="field"><label>Intensidade da curva <b data-iv>${fixed ? "—" : idx == null ? "personalizada" : idx}</b></label><input type="range" min="0" max="10" value="${fixed ? 5 : idx ?? 5}" data-int ${fixed ? "disabled" : ""}><div class="help">${fixed ? "Esta curva não tem ajuste de intensidade." : "0 = mais suave · 10 = mais agressiva"}</div></div>
-        <div class="field"><label>Zona morta <b data-dv>${dz}%</b></label><input type="range" min="0" max="40" value="${dz}" data-dz><div class="help">Quanto o analógico precisa se mover antes de responder.</div></div>
-        <div class="field"><label>Pontos da curva (entrada → saída)</label><div class="raw-grid" data-raw></div></div>
-        <div class="live-pad"><div class="joy"><i></i></div><span>Mova o analógico: o ponto amarelo mostra a resposta na curva.</span></div>
+        <div class="field"><label>${T("Intensidade da curva")} <b data-iv>${fixed ? "—" : idx == null ? T("personalizada") : idx}</b></label><input type="range" min="0" max="10" value="${fixed ? 5 : idx ?? 5}" data-int ${fixed ? "disabled" : ""}><div class="help">${fixed ? T("Esta curva não tem ajuste de intensidade.") : T("0 = mais suave · 10 = mais agressiva")}</div></div>
+        <div class="field"><label>${T("Zona morta")} <b data-dv>${dz}%</b></label><input type="range" min="0" max="40" value="${dz}" data-dz><div class="help">${T("Quanto o analógico precisa se mover antes de responder.")}</div></div>
+        <div class="field"><label>${T("Pontos da curva (entrada → saída)")}</label><div class="raw-grid" data-raw></div></div>
+        <div class="live-pad"><div class="joy"><i></i></div><span>${T("Mova o analógico: o ponto amarelo mostra a resposta na curva.")}</span></div>
       </div></div>`;
   const intIn = $("[data-int]", card), dzIn = $("[data-dz]", card), iv = $("[data-iv]", card), dv = $("[data-dv]", card);
   [intIn, dzIn].forEach(setRangeFill);
@@ -523,7 +523,7 @@ function renderStick(side) {
     if (keep) Proto.applyDeadzone(j, keep);
     changed(); renderStick(side);
   }));
-  $("[data-copy]", card).onclick = () => { state.draft[other] = Proto.clone(j); changed(); renderSticks(); toast("Configuração copiada para o outro analógico"); };
+  $("[data-copy]", card).onclick = () => { state.draft[other] = Proto.clone(j); changed(); renderSticks(); toast(T("Configuração copiada para o outro analógico")); };
   intIn.oninput = () => {
     const keep = Proto.deadzoneOf(j.curveValues);
     j.curveValues = Proto.presetCurve(j.profileId, Number(intIn.value));
@@ -549,7 +549,7 @@ function renderStick(side) {
   const syncRaw = () => inputs.forEach((inp, i) => (inp.value = j.curveValues[i]));
   const meta = () => {
     const ix = Proto.detectIndex(j.profileId, j.curveValues);
-    iv.textContent = fixed ? "—" : ix == null ? "personalizada" : ix;
+    iv.textContent = fixed ? "—" : ix == null ? T("personalizada") : ix;
     if (ix != null) { intIn.value = ix; setRangeFill(intIn); }
     const d = Proto.deadzoneOf(j.curveValues);
     dzIn.value = d; dv.textContent = d + "%"; setRangeFill(dzIn);
@@ -609,8 +609,8 @@ function renderStick(side) {
 // ============================================================ TRIGGERS
 function renderTriggers() {
   const box = $("#triggers");
-  box.innerHTML = `<div class="trig-top"><span class="muted">Defina a faixa útil de cada gatilho. Ele só responde a partir do início e chega a 100% no fim da faixa.</span>
-      <span class="toggle ${state.trigLink ? "on" : ""}" id="trig-link"><i></i>Mesma configuração para L2 e R2</span></div>
+  box.innerHTML = `<div class="trig-top"><span class="muted">${T("Defina a faixa útil de cada gatilho. Ele só responde a partir do início e chega a 100% no fim da faixa.")}</span>
+      <span class="toggle ${state.trigLink ? "on" : ""}" id="trig-link"><i></i>${T("Mesma configuração para L2 e R2")}</span></div>
     <div class="grid2"><div class="card" id="trig-left"></div><div class="card" id="trig-right"></div></div>`;
   $("#trig-link").onclick = () => {
     state.trigLink = !state.trigLink;
@@ -624,15 +624,15 @@ function renderTrigger(side) {
   const k = side === "left" ? "leftTrigger" : "rightTrigger", ok = side === "left" ? "rightTrigger" : "leftTrigger";
   const t = state.draft[k];
   const pct = (v) => Math.round((v / 255) * 100);
-  card.innerHTML = `<h4>${G(side === "left" ? "L2" : "R2", 22)} Gatilho ${side === "left" ? "L2" : "R2"}<span class="sub">faixa útil</span></h4>
+  card.innerHTML = `<h4>${G(side === "left" ? "L2" : "R2", 22)} ${T("Gatilho {t}", { t: side === "left" ? "L2" : "R2" })}<span class="sub">${T("faixa útil")}</span></h4>
     <div class="trig-vis"><div class="trig-live"></div><div class="trig-range"></div></div>
     <div class="trig-scale"><span>0</span><span>255</span></div>
-    <div class="trig-nums"><div class="trig-num"><span class="cap">De</span><b data-a></b><div class="dim small" data-ap></div></div><span class="dim">→</span><div class="trig-num"><span class="cap">Até</span><b data-b></b><div class="dim small" data-bp></div></div></div>
+    <div class="trig-nums"><div class="trig-num"><span class="cap">${T("De")}</span><b data-a></b><div class="dim small" data-ap></div></div><span class="dim">→</span><div class="trig-num"><span class="cap">${T("Até")}</span><b data-b></b><div class="dim small" data-bp></div></div></div>
     <div class="controls">
-      <div class="field"><label>Início (zona morta)</label><input type="range" min="0" max="255" data-min></div>
-      <div class="field"><label>Fim (gatilho curto)</label><input type="range" min="0" max="255" data-max></div></div>
-    <div class="trig-out" data-out>Aperte o gatilho para testar.</div>
-    <div class="chips">${[["Completo", 0, 255], ["Gatilho curto", 0, 90], ["Disparo rápido", 0, 30], ["Zona morta 10%", 25, 255]].map(([n, a, b]) => `<button class="chip" data-pr="${a},${b}">${n}</button>`).join("")}</div>`;
+      <div class="field"><label>${T("Início (zona morta)")}</label><input type="range" min="0" max="255" data-min></div>
+      <div class="field"><label>${T("Fim (gatilho curto)")}</label><input type="range" min="0" max="255" data-max></div></div>
+    <div class="trig-out" data-out>${T("Aperte o gatilho para testar.")}</div>
+    <div class="chips">${[[T("Completo"), 0, 255], [T("Gatilho curto"), 0, 90], [T("Disparo rápido"), 0, 30], [T("Zona morta 10%"), 25, 255]].map(([n, a, b]) => `<button class="chip" data-pr="${a},${b}">${n}</button>`).join("")}</div>`;
   const minI = $("[data-min]", card), maxI = $("[data-max]", card), range = $(".trig-range", card);
   const sync = () => {
     range.style.left = (t.min / 255) * 100 + "%"; range.style.width = ((t.max - t.min) / 255) * 100 + "%";
@@ -648,7 +648,7 @@ function renderTrigger(side) {
   card._live = (v) => {
     $(".trig-live", card).style.width = (v / 255) * 100 + "%";
     const eff = v <= t.min ? 0 : v >= t.max ? 100 : Math.round(((v - t.min) / (t.max - t.min)) * 100);
-    $("[data-out]", card).innerHTML = `Pressão física <b>${pct(v)}%</b> → saída <b>${eff}%</b>`;
+    $("[data-out]", card).innerHTML = T("Pressão física <b>{in}%</b> → saída <b>{out}%</b>", { in: pct(v), out: eff });
   };
   sync();
 }
@@ -659,8 +659,8 @@ function renderPresets() {
   const cats = ["Todos", ...new Set(PRESETS.map((p) => p.cat)), "Meus perfis"];
   const count = (c) => (c === "Todos" ? PRESETS.length : c === "Meus perfis" ? state.library.length : PRESETS.filter((p) => p.cat === c).length);
   const mine = state.library.filter((p) => !(isLib() && p.id === state.selected.id)).map((p) => ({
-    cat: "Meus perfis", name: p.label || "Sem nome", d: summary(p), mine: p,
-    left: null, right: null, tags: ["Biblioteca"],
+    cat: T("Meus perfis"), name: p.label || T("Sem nome"), d: summary(p), mine: p,
+    left: null, right: null, tags: [T("Biblioteca")],
   }));
   const list = state.presetCat === "Todos" ? PRESETS : state.presetCat === "Meus perfis" ? mine : PRESETS.filter((p) => p.cat === state.presetCat);
   const viz = (pr) => {
@@ -670,19 +670,19 @@ function renderPresets() {
     const r2 = pr.mine ? [pr.mine.rightTrigger.min, pr.mine.rightTrigger.max] : pr.r2 || [0, 255];
     const cv = (pts, keep) => `<svg width="100%" height="40" viewBox="0 0 100 40" preserveAspectRatio="none"><path d="${curvePath(pts, 100, 40)}" fill="none" stroke="${keep ? "var(--line2)" : "var(--ac)"}" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`;
     const tb = (r, keep) => `<div class="tb"><i style="left:${(r[0] / 255) * 100}%;width:${((r[1] - r[0]) / 255) * 100}%;${keep ? "background:var(--line2)" : ""}"></i></div>`;
-    return `<div class="pviz"><div><div class="cap">Analóg. esq.</div>${cv(lc, !pr.mine && !pr.left)}</div><div><div class="cap">Analóg. dir.</div>${cv(rc, !pr.mine && !pr.right)}</div>
+    return `<div class="pviz"><div><div class="cap">${T("Analóg. esq.")}</div>${cv(lc, !pr.mine && !pr.left)}</div><div><div class="cap">${T("Analóg. dir.")}</div>${cv(rc, !pr.mine && !pr.right)}</div>
       <div style="flex:.8"><div class="cap">L2 / R2</div>${tb(l2, !pr.mine && !pr.l2)}${tb(r2, !pr.mine && !pr.r2)}</div></div>`;
   };
   const mapChips = (pr) => pr.map ? Object.entries(pr.map).map(([k, v]) => `<span class="chip">${G(PHYS[k].g, 14)}→${G(PHYS[v].g, 14)}</span>`).join("") : "";
-  box.innerHTML = `<div class="cats">${cats.map((c) => `<button class="cat ${c === state.presetCat ? "on" : ""}" data-c="${esc(c)}">${esc(c)}<span>${count(c)}</span></button>`).join("")}</div>
+  box.innerHTML = `<div class="cats">${cats.map((c) => `<button class="cat ${c === state.presetCat ? "on" : ""}" data-c="${esc(c)}">${esc(c === "Todos" ? T("Todos") : c === "Meus perfis" ? T("Meus perfis") : c)}<span>${count(c)}</span></button>`).join("")}</div>
     <div class="preset-main">
-      <div class="card roll"><div class="dice">🎲</div><div><b>Preset aleatório</b><div class="muted small">Sorteia um preset e aplica no rascunho — nada vai pro controle até você gravar</div></div><div class="spacer"></div>
-        <button class="btn" id="roll">Sortear</button></div>
+      <div class="card roll"><div class="dice">🎲</div><div><b>${T("Preset aleatório")}</b><div class="muted small">${T("Sorteia um preset e aplica no rascunho — nada vai pro controle até você gravar")}</div></div><div class="spacer"></div>
+        <button class="btn" id="roll">${T("Sortear")}</button></div>
       <div class="pgrid">${list.map((pr, i) => `<div class="card pcard ${pr.hot ? "hot" : ""}" data-i="${i}">
-          <div class="ph"><b>${esc(pr.name)}</b>${pr.hot ? `<span class="badge-hot">POPULAR</span>` : ""}<span class="dim">${esc(pr.cat)}</span></div>
+          <div class="ph"><b>${esc(pr.name)}</b>${pr.hot ? `<span class="badge-hot">${T("POPULAR")}</span>` : ""}<span class="dim">${esc(pr.cat)}</span></div>
           <div class="pd">${esc(pr.d)}</div>${viz(pr)}
           <div class="ptags">${pr.tags.map((t) => `<span class="chip">${esc(t)}</span>`).join("")}${mapChips(pr)}</div>
-          <div class="pact"><button class="btn sm ${pr.hot ? "pri" : ""}" data-apply="${i}">Aplicar</button></div></div>`).join("") || `<div class="dim">Nenhum perfil na biblioteca ainda.</div>`}</div>
+          <div class="pact"><button class="btn sm ${pr.hot ? "pri" : ""}" data-apply="${i}">${T("Aplicar")}</button></div></div>`).join("") || `<div class="dim">${T("Nenhum perfil na biblioteca ainda.")}</div>`}</div>
     </div>`;
   $$(".cat", box).forEach((c) => (c.onclick = () => { state.presetCat = c.dataset.c; renderPresets(); }));
   $$("[data-apply]", box).forEach((b) => (b.onclick = () => applyAny(list[Number(b.dataset.apply)], b.closest(".pcard"))));
@@ -703,7 +703,7 @@ function applyAny(pr, card) {
   changed();
   card?.classList.add("flash");
   setTimeout(() => card?.classList.remove("flash"), 900);
-  toast(`“${pr.name}” aplicado${isLib() ? "" : " — grave no controle para valer"}`, "ok");
+  toast(isLib() ? T("“{name}” aplicado", { name: pr.name }) : T("“{name}” aplicado — grave no controle para valer", { name: pr.name }), "ok");
 }
 
 // ============================================================ MONITOR
@@ -715,26 +715,26 @@ function buildMonitor() {
   box.dataset.built = "1";
   const keys = ["L1", "R1", "L2", "R2", "up", "right", "down", "left", "tri", "cir", "crs", "sq", "L3", "R3", "PL", "PR", "fn", "ps", "opt", "create", "touch", "mute"];
   box.innerHTML = `<div class="mon">
-    <div class="card ctrl-card"><div class="cap">Controle</div><div class="ctrl-live" id="m-ctrl"></div>
+    <div class="card ctrl-card"><div class="cap">${T("Controle")}</div><div class="ctrl-live" id="m-ctrl"></div>
       <div class="bars2">${["L2", "R2"].map((n) => `<div><div class="bar-h">${G(n, 18)}<b id="m-${n}v">0%</b></div><div class="track"><i id="m-${n}"></i></div></div>`).join("")}</div>
       <div class="btn-grid">${keys.map((k) => `<span data-k="${k}">${G(k, 26)}</span>`).join("")}</div></div>
-    <div class="card gyro-card"><div style="display:flex;align-items:center"><div class="cap">Giroscópio e acelerômetro</div><button class="btn sm ghost" id="m-cal" style="margin-left:auto" title="Zera a rotação (o giroscópio acumula pequenos desvios)">⟲ Recentralizar</button></div>
+    <div class="card gyro-card"><div style="display:flex;align-items:center"><div class="cap">${T("Giroscópio e acelerômetro")}</div><button class="btn sm ghost" id="m-cal" style="margin-left:auto" title="${T("Zera a rotação (o giroscópio acumula pequenos desvios)")}">⟲ ${T("Recentralizar")}</button></div>
       <div class="gyro-stage"><canvas id="m-3d"></canvas></div>
       <div class="gyro-vals3">
-        <div><span class="muted"><span style="color:#ff6b8a">●</span> Inclinação</span><b id="m-pitch">0°</b><button class="inv" data-inv="pitch" title="Inverter eixo">⇅</button></div>
-        <div><span class="muted"><span style="color:#6aa8ff">●</span> Giro lateral</span><b id="m-roll">0°</b><button class="inv" data-inv="roll" title="Inverter eixo">⇄</button></div>
-        <div><span class="muted"><span style="color:#2fd08a">●</span> Rotação</span><b id="m-yaw">0°</b><button class="inv" data-inv="yaw" title="Inverter eixo">↻</button></div>
+        <div><span class="muted"><span style="color:#ff6b8a">●</span> ${T("Inclinação")}</span><b id="m-pitch">0°</b><button class="inv" data-inv="pitch" title="Inverter eixo">⇅</button></div>
+        <div><span class="muted"><span style="color:#6aa8ff">●</span> ${T("Giro lateral")}</span><b id="m-roll">0°</b><button class="inv" data-inv="roll" title="Inverter eixo">⇄</button></div>
+        <div><span class="muted"><span style="color:#2fd08a">●</span> ${T("Rotação")}</span><b id="m-yaw">0°</b><button class="inv" data-inv="yaw" title="Inverter eixo">↻</button></div>
       </div>
       <svg class="spark" viewBox="0 0 240 50" preserveAspectRatio="none"><path id="m-s0" fill="none" stroke="#ff6b8a" stroke-width="1.5"/><path id="m-s1" fill="none" stroke="#2fd08a" stroke-width="1.5"/><path id="m-s2" fill="none" stroke="#6aa8ff" stroke-width="1.5"/></svg>
-      <div class="sens-meta"><span id="m-gyro">gyro —</span><span id="m-acc">accel —</span></div></div>
-    <div class="card"><div style="display:flex;align-items:center"><div class="cap">Touchpad</div><span class="click-pill" id="m-click">CLIQUE</span></div>
+      <div class="sens-meta"><span id="m-gyro">${T("gyro")} —</span><span id="m-acc">${T("accel")} —</span></div></div>
+    <div class="card"><div style="display:flex;align-items:center"><div class="cap">${T("Touchpad")}</div><span class="click-pill" id="m-click">${T("CLIQUE")}</span></div>
       <div class="tpad" id="m-tpad"><svg viewBox="0 0 1920 1080" preserveAspectRatio="none"><polyline id="m-t0" fill="none" stroke="#f5b84a" stroke-width="8" opacity=".5"/><polyline id="m-t1" fill="none" stroke="#ff8a5c" stroke-width="8" opacity=".5"/></svg>
         <div class="finger f1 hidden" id="m-f0">1</div><div class="finger f2 hidden" id="m-f1">2</div></div>
-      <div class="sens-meta"><span id="m-tp0">●1 —</span><span id="m-tp1">●2 —</span><span id="m-side">sem toque</span></div></div>
+      <div class="sens-meta"><span id="m-tp0">●1 —</span><span id="m-tp1">●2 —</span><span id="m-side">${T("sem toque")}</span></div></div>
     <div class="card wide"><div class="sticks-row">
-      ${["L", "R"].map((s) => `<div class="one"><div class="joy" id="m-j${s}"><i></i></div><div><div style="display:flex;gap:6px;align-items:center">${G(s + "3", 18)}<b>${s === "L" ? "Esquerdo" : "Direito"}</b></div><div class="dim small" id="m-j${s}v">—</div></div></div>`).join("")}
-      <div class="vsep"></div><div style="display:flex;flex-direction:column;gap:6px"><button class="btn sm" id="m-rw">Vibrar fraco</button><button class="btn sm" id="m-rs">Vibrar forte</button></div></div></div>
-    <div class="card" style="grid-column:1 / -1"><div class="cap" style="margin-bottom:6px">Report bruto (USB 0x01)</div><div class="rawhex" id="m-raw">—</div></div>
+      ${["L", "R"].map((s) => `<div class="one"><div class="joy" id="m-j${s}"><i></i></div><div><div style="display:flex;gap:6px;align-items:center">${G(s + "3", 18)}<b>${s === "L" ? T("Esquerdo") : T("Direito")}</b></div><div class="dim small" id="m-j${s}v">—</div></div></div>`).join("")}
+      <div class="vsep"></div><div style="display:flex;flex-direction:column;gap:6px"><button class="btn sm" id="m-rw">${T("Vibrar fraco")}</button><button class="btn sm" id="m-rs">${T("Vibrar forte")}</button></div></div></div>
+    <div class="card" style="grid-column:1 / -1"><div class="cap" style="margin-bottom:6px">${T("Report bruto (USB 0x01)")}</div><div class="rawhex" id="m-raw">—</div></div>
   </div>`;
   $("#m-cal").onclick = () => { call("resetYaw").catch(() => {}); state.yawOffset = state.yaw; };
   model3d = new Controller3D($("#m-3d"));
@@ -788,8 +788,8 @@ function paintMonitor(i) {
   const dps = i.gyro.map((g) => g / 16.4);
   dps.forEach((v, k) => { hist.g[k].push(v); if (hist.g[k].length > 120) hist.g[k].shift(); });
   hist.g.forEach((arr, k) => $(`#m-s${k}`).setAttribute("d", arr.map((v, x) => `${x ? "L" : "M"}${x * 2},${(25 - Math.max(-24, Math.min(24, v / 12))).toFixed(1)}`).join(" ")));
-  $("#m-gyro").textContent = `gyro ${dps.map((v) => Math.round(v) || 0).join(" · ")} °/s`;
-  $("#m-acc").textContent = `accel ${i.accel.map((v) => (v / 8192).toFixed(2)).join(" · ")} g`;
+  $("#m-gyro").textContent = `${T("gyro")} ${dps.map((v) => Math.round(v) || 0).join(" · ")} °/s`;
+  $("#m-acc").textContent = `${T("accel")} ${i.accel.map((v) => (v / 8192).toFixed(2)).join(" · ")} g`;
 
   // touchpad
   $("#m-tpad").classList.toggle("click", i.touchpad);
@@ -808,13 +808,13 @@ function paintMonitor(i) {
     $(`#m-t${k}`).setAttribute("points", trails[k].join(" "));
   });
   const act = i.touches.filter((t) => t.active);
-  $("#m-side").textContent = !act.length ? "sem toque" : act.length === 2 ? "2 dedos" : act[0].x < 960 ? "lado esquerdo" : "lado direito";
+  $("#m-side").textContent = !act.length ? T("sem toque") : act.length === 2 ? T("2 dedos") : act[0].x < 960 ? T("lado esquerdo") : T("lado direito");
 
   // sticks
   for (const [s, x, y, c] of [["L", i.lx, i.ly, i.l3], ["R", i.rx, i.ry, i.r3]]) {
     const j = $(`#m-j${s}`); j.classList.toggle("click", c);
     const dot = j.firstElementChild; dot.style.left = (x / 255) * 100 + "%"; dot.style.top = (y / 255) * 100 + "%";
-    $(`#m-j${s}v`).textContent = `X ${x} · Y ${y} · intensidade ${Math.min(100, Math.round(Math.hypot(x - 128, y - 128) / 1.28))}%`;
+    $(`#m-j${s}v`).textContent = T("X {x} · Y {y} · intensidade {p}%", { x, y, p: Math.min(100, Math.round(Math.hypot(x - 128, y - 128) / 1.28)) });
   }
   $("#m-raw").textContent = i.raw.map((b) => b.toString(16).padStart(2, "0")).join(" ");
 }
@@ -866,48 +866,48 @@ async function duplicateLib(id) {
   const p = state.library.find((x) => x.id === id);
   const c = Proto.clone(p);
   c.id = Proto.randomId();
-  c.label = uniqueName(((p.label || "Perfil") + " (cópia)").slice(0, 40));
+  c.label = uniqueName(T("{name} (cópia)", { name: p.label || T("Perfil") }).slice(0, 40));
   state.library.unshift(c);
   await saveLibrary();
   renderDrawer(); renderRail();
 }
 async function deleteLib(id) {
   const p = state.library.find((x) => x.id === id);
-  if (!(await confirmDialog("Excluir da biblioteca?", `“${p.label}” será removido da biblioteca. O que já está gravado no controle não muda.`, "Excluir", true))) return;
+  if (!(await confirmDialog(T("Excluir da biblioteca?"), T("“{name}” será removido da biblioteca. O que já está gravado no controle não muda.", { name: p.label }), T("Excluir"), true))) return;
   state.library = state.library.filter((x) => x.id !== id);
   await saveLibrary();
   if (isLib() && state.selected.id === id) goHome(); else { renderDrawer(); renderRail(); }
 }
 async function saveCurrentToLibrary() {
-  if (isLib()) return newProfile({ ...state.draft, label: uniqueName((state.draft.label + " (cópia)").slice(0, 40)) });
+  if (isLib()) return newProfile({ ...state.draft, label: uniqueName(T("{name} (cópia)", { name: state.draft.label }).slice(0, 40)) });
   const d = Proto.clone(state.draft);
-  d.label = d.label || "Perfil";
+  d.label = d.label || T("Perfil");
   const ex = state.library.findIndex((p) => p.id === d.id);
   if (ex >= 0) {
-    if (await confirmDialog("Atualizar perfil da biblioteca?", `“${state.library[ex].label}” já está na biblioteca. Substituir pela versão atual?`, "Substituir")) state.library[ex] = d;
+    if (await confirmDialog(T("Atualizar perfil da biblioteca?"), T("“{name}” já está na biblioteca. Substituir pela versão atual?", { name: state.library[ex].label }), T("Substituir"))) state.library[ex] = d;
     else { d.id = Proto.randomId(); d.label = uniqueName(d.label); state.library.unshift(d); }
   } else state.library.unshift(d);
   await saveLibrary();
   renderDrawer(); renderRail();
-  toast(`“${d.label}” salvo na biblioteca`, "ok");
+  toast(T("“{name}” salvo na biblioteca", { name: d.label }), "ok");
 }
 async function exportLib() {
-  if (!state.library.length) return toast("A biblioteca está vazia", "err");
+  if (!state.library.length) return toast(T("A biblioteca está vazia"), "err");
   const ok = await call("exportJSON", { text: JSON.stringify(state.library, null, 2), filename: `edge-profiles-${new Date().toISOString().slice(0, 10)}.json` });
-  if (ok) toast(`${state.library.length} perfil(is) exportado(s)`, "ok");
+  if (ok) toast(T("{n} perfil(is) exportado(s)", { n: state.library.length }), "ok");
 }
 async function importLib() {
   try {
     const txt = await call("importJSON");
     if (!txt) return;
     const arr = JSON.parse(txt);
-    if (!Array.isArray(arr)) throw new Error("formato inválido");
+    if (!Array.isArray(arr)) throw new Error(T("formato inválido"));
     let n = 0;
     for (const r of arr) { if (!r?.id || r.label == null || state.library.some((p) => p.id === r.id)) continue; state.library.push(normalize(r)); n++; }
     await saveLibrary();
     renderDrawer(); renderRail();
-    toast(`${n} perfil(is) importado(s)`, "ok");
-  } catch (e) { toast("Importação falhou: " + e.message, "err"); }
+    toast(T("{n} perfil(is) importado(s)", { n }), "ok");
+  } catch (e) { toast(T("Importação falhou: {msg}", { msg: e.message }), "err"); }
 }
 
 // ============================================================ wiring
@@ -923,6 +923,8 @@ function wire() {
   $("#lib-import").onclick = importLib;
   $("#lib-export").onclick = exportLib;
   $("#btn-compare").onclick = () => Compare.toggle(true);
+  I18N.mountPicker($("#btn-lang"));
+  I18N.beforeChange = async () => !isDirty() || confirmDialog(T("Trocar de idioma?"), T("O app vai recarregar e as alterações não gravadas deste perfil serão perdidas."), T("Trocar idioma"), true);
   $("#btn-refresh").onclick = () => trySelect(() => readProfiles(false));
   $("#btn-save").onclick = saveCurrentToLibrary;
   $("#btn-revert").onclick = () => { state.draft = Proto.clone(state.original); state.picker = null; renderAll(); };
@@ -949,11 +951,11 @@ function wire() {
     if (evt.type === "status") {
       const was = state.status.connected;
       state.status = evt;
-      if (evt.connected && !was) { HW.onConnect(); Diag.resetInfo(); if (!Native.simulated) toast("DualSense Edge conectado", "ok"); readProfiles(true); }
+      if (evt.connected && !was) { HW.onConnect(); Diag.resetInfo(); if (!Native.simulated) toast(T("DualSense Edge conectado"), "ok"); readProfiles(true); }
       if (!evt.connected && was) {
         state.slots = null; state.input = null;
         if (state.selected?.kind === "slot" && !isDirty()) goHome();
-        toast("Controle desconectado", "err");
+        toast(T("Controle desconectado"), "err");
       }
       renderAll();
     } else if (evt.type === "error") toast(evt.message, "err");

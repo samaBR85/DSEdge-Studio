@@ -13,37 +13,37 @@ const Proto = (() => {
   const CLEAR_CODE = { 0x60: 2, 0x61: 3, 0x62: 4 };
 
   const SLOTS = [
-    { selector: 0x63, key: "triangle", glyph: "△", name: "Triângulo", readOnly: true },
-    { selector: 0x60, key: "square", glyph: "□", name: "Quadrado" },
-    { selector: 0x61, key: "cross", glyph: "✕", name: "Xis" },
-    { selector: 0x62, key: "circle", glyph: "○", name: "Círculo" },
+    { selector: 0x63, key: "triangle", glyph: "△", name: T("Triângulo"), readOnly: true },
+    { selector: 0x60, key: "square", glyph: "□", name: T("Quadrado") },
+    { selector: 0x61, key: "cross", glyph: "✕", name: T("Xis") },
+    { selector: 0x62, key: "circle", glyph: "○", name: T("Círculo") },
   ];
 
   // Physical button index → name (button-mapping table has 16 entries).
   const BUTTONS = [
     "D-Pad ↑", "D-Pad →", "D-Pad ↓", "D-Pad ←",
-    "Círculo", "Xis", "Quadrado", "Triângulo",
+    T("Círculo"), T("Xis"), T("Quadrado"), T("Triângulo"),
     "R1", "R2", "R3", "L1", "L2", "L3",
-    "Paddle esquerdo", "Paddle direito",
+    T("Paddle esquerdo"), T("Paddle direito"),
   ];
   const BUTTON_GROUPS = [
-    { label: "Gatilhos", slots: [12, 9] },
-    { label: "Ombros", slots: [11, 8] },
-    { label: "Botões de ação", slots: [7, 4, 5, 6] },
-    { label: "Direcional", slots: [0, 1, 2, 3] },
-    { label: "Clique dos analógicos", slots: [13, 10] },
-    { label: "Botões traseiros", slots: [14, 15] },
+    { label: T("Gatilhos"), slots: [12, 9] },
+    { label: T("Ombros"), slots: [11, 8] },
+    { label: T("Botões de ação"), slots: [7, 4, 5, 6] },
+    { label: T("Direcional"), slots: [0, 1, 2, 3] },
+    { label: T("Clique dos analógicos"), slots: [13, 10] },
+    { label: T("Botões traseiros"), slots: [14, 15] },
   ];
 
   // Stick response-curve presets (PS5 "Joystick Sensitivity/Curve" types).
   // Each of the 6 curve bytes = initial + accumulated modifier for adjustment index 0..10.
   const STICK_PRESETS = [
-    { id: 0, name: "Padrão", mod: 3, adj: [[128], [128], [196], [196], [225], [225]] },
-    { id: 1, name: "Rápida", mod: 3, adj: [[38], [38], [122, -3], [139, [6, 5]], [255], [255]] },
-    { id: 2, name: "Precisa", mod: 4, adj: [[70, 3], [57, [-3, -4]], [134, 3], [115, [-6, -7]], [196, 2], [177, [-7, -8]]] },
-    { id: 3, name: "Estável", mod: 4, adj: [[62, -1], [62, -1], [120, -4], [129, [0, -1]], [197, [3, 2]], [179, [-5, -6]]] },
-    { id: 4, name: "Digital", mod: 3, adj: [[38], [38], [38], [75, 18], [255], [255]] },
-    { id: 5, name: "Dinâmica", mod: 3, adj: [[69, [3, 2]], [57, [-3, -4]], [183, [-4, -5]], [198, 3], [255], [255]] },
+    { id: 0, name: T("Padrão"), mod: 3, adj: [[128], [128], [196], [196], [225], [225]] },
+    { id: 1, name: T("Rápida"), mod: 3, adj: [[38], [38], [122, -3], [139, [6, 5]], [255], [255]] },
+    { id: 2, name: T("Precisa"), mod: 4, adj: [[70, 3], [57, [-3, -4]], [134, 3], [115, [-6, -7]], [196, 2], [177, [-7, -8]]] },
+    { id: 3, name: T("Estável"), mod: 4, adj: [[62, -1], [62, -1], [120, -4], [129, [0, -1]], [197, [3, 2]], [179, [-5, -6]]] },
+    { id: 4, name: T("Digital"), mod: 3, adj: [[38], [38], [38], [75, 18], [255], [255]] },
+    { id: 5, name: T("Dinâmica"), mod: 3, adj: [[69, [3, 2]], [57, [-3, -4]], [183, [-4, -5]], [198, 3], [255], [255]] },
   ];
 
   function adjAt([initial, modifier], i) {
@@ -118,7 +118,7 @@ const Proto = (() => {
     const p = STICK_PRESETS[presetId];
     return { profileId: presetId, modifier: p.mod, curveValues: presetCurve(presetId, index) };
   }
-  function newProfile(label = "Novo perfil") {
+  function newProfile(label = T("Novo perfil")) {
     return {
       id: randomId(),
       label,
@@ -197,7 +197,7 @@ const Proto = (() => {
 
   // Build the 3 feature reports that write `profile` into slot `selector` (0x60..0x63).
   function encode(profile, selector) {
-    if (![0x60, 0x61, 0x62, 0x63].includes(selector)) throw new Error("Slot inválido");
+    if (![0x60, 0x61, 0x62, 0x63].includes(selector)) throw new Error(T("Slot inválido"));
     const base = profile.raw && !profile.empty ? profile.raw : null;
     const t = [0, 1, 2].map((k) => {
       const a = new Uint8Array(64);
@@ -213,7 +213,7 @@ const Proto = (() => {
     // label: 27 UTF-16 units in part0[6..59], 13 in part1[2..27]
     t[0].fill(0, 6, 60);
     t[1].fill(0, 2, 28);
-    const units = encodeLabel(profile.label || "Perfil");
+    const units = encodeLabel(profile.label || T("Perfil"));
     units.forEach((u, i) => {
       if (i < 27) { t[0][6 + i * 2] = u & 0xff; t[0][7 + i * 2] = u >> 8; }
       else { const j = i - 27; t[1][2 + j * 2] = u & 0xff; t[1][3 + j * 2] = u >> 8; }
@@ -254,7 +254,7 @@ const Proto = (() => {
     const a = new Array(64).fill(0);
     a[0] = 0x68;
     a[1] = CLEAR_CODE[selector];
-    if (!a[1]) throw new Error("Este slot não pode ser limpo");
+    if (!a[1]) throw new Error(T("Este slot não pode ser limpo"));
     return a;
   }
 

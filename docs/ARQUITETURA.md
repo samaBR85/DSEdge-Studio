@@ -37,6 +37,7 @@ A interface chama `Native.call(cmd, args)`, que vira `window.webkit.messageHandl
 | Comando | Argumentos | Resultado |
 |---|---|---|
 | `status` | – | `{type:"status", connected, transport, bluetoothOnly, serial}` |
+| `setLang` | `lang` (código ou `""` para seguir o sistema) | Salva a escolha, traduz os menus nativos e prepara a próxima carga da página. A página recarrega em seguida. |
 | `menuInfo` | `profile` | Atualiza o perfil ativo mostrado na barra de menus. |
 | `resetYaw` | – | Zera o giro lateral integrado. |
 | `log` | `text` | Escreve no log do sistema (depuração). |
@@ -68,6 +69,24 @@ O nativo chama `window.EdgeNative.onEvent(evt)`. Tipos de evento:
 
 Quando `web/index.html` é aberto num navegador comum (sem `window.webkit.messageHandlers`), `native.js` troca a ponte por um simulador: devolve slots de exemplo, gera input reports sintéticos e guarda os arquivos em `localStorage`. Isso permite desenvolver e testar a interface sem o controle. Veja [DESENVOLVIMENTO.md](DESENVOLVIMENTO.md#rodar-a-interface-no-navegador).
 
+## Idiomas
+
+O idioma de origem é o português. Todo texto visível passa por uma tradução, e o próprio texto em português é a chave:
+
+- **JavaScript**: `T("Gravar no slot {g}", { g })`. A função fica em `web/i18n.js`; os `{marcadores}` são trocados pelos valores.
+- **HTML estático**: atributos `data-i18n` (texto), `data-i18n-html`, `data-i18n-title` e `data-i18n-ph` (placeholder), aplicados por `I18N.applyDom()` antes da interface renderizar.
+- **Objective-C**: `L(@"…")` e `Lf(@"…", @{…})` em `src/main.m`.
+
+As traduções ficam em `web/i18n/<código>.js`, no formato `I18N.add("en", { "texto em português": "translation", … })`. O lado nativo lê os mesmos arquivos (pega o objeto JSON entre a primeira `{` e a última `}`), então há uma única fonte de traduções.
+
+**Escolha do idioma**, nesta ordem:
+
+1. a escolha salva pelo seletor (`NSUserDefaults`, chave `lang`; no navegador, `localStorage`);
+2. o primeiro idioma de `NSLocale.preferredLanguages` que o app suporta;
+3. inglês.
+
+O nativo injeta `window.EdgeLang = { saved, system }` no início de cada carga da página (`WKUserScript`), e `i18n.js` decide o idioma antes de qualquer outro script rodar. O idioma é fixo durante a vida da página: trocar recarrega a página, o que permite que módulos chamem `T()` ao carregar (nomes de botões, presets, curvas).
+
 ## Fluxo de leitura e gravação
 
 1. `readProfiles` lê `0x70`–`0x7B` e `Proto.parseAll` transforma os 12 reports em 4 perfis (△ □ ✕ ○). Os bytes originais ficam em `profile.raw`.
@@ -86,14 +105,15 @@ Pasta: `~/Library/Application Support/DualSense Edge Studio/`
 |---|---|
 | `library.json` | Perfis da biblioteca (formato edge-config.com). |
 | `state.json` | Último slot ativo, inversão de eixos do monitor e ajustes da aba Hardware. |
-| `history.json` | Cópias dos slots antes de cada gravação, limpeza ou restauração (até 60). |
+| `history.json` | Cópias dos slots antes de cada gravação, limpeza ou restauração (até 60). O motivo de cada entrada é guardado no idioma em uso na hora. |
 
-As preferências da barra de menus (continuar ao fechar a janela, aviso de bateria) ficam em `NSUserDefaults` do domínio `local.dualsense-edge-studio` (chaves `quitOnClose` e `noBatteryWarning`).
+As preferências da barra de menus (continuar ao fechar a janela, aviso de bateria) ficam em `NSUserDefaults` do domínio `local.dualsense-edge-studio` (chaves `quitOnClose`, `noBatteryWarning` e `lang`).
 
 ## Módulos da interface
 
 | Arquivo | Responsabilidade |
 |---|---|
+| `i18n.js` | Idiomas: `T()`, detecção, `applyDom()` e o seletor no topo. Carregado antes de todos os outros, seguido de `i18n/*.js`. |
 | `app.js` | Estado global, barra lateral, abas Botões/Analógicos/Gatilhos/Presets/Monitor, biblioteca, gravação. Define os utilitários usados pelos outros módulos (`$`, `$$`, `call`, `toast`, `confirmDialog`, …). |
 | `proto.js` | Protocolo (sem dependências): slots, botões, curvas, CRC32, `parseAll`, `encode`, `clearReport`, `parseInput`. |
 | `native.js` | Ponte com o app ou simulador. |

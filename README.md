@@ -44,6 +44,7 @@
 - **Barra de menus**: ícone com a bateria do controle e o perfil ativo, aviso de bateria fraca (20% e 10%) e opção de continuar rodando só na barra de menus ao fechar a janela.
 - **Sobre o controle** (aba Diagnóstico): versão e data do firmware, versão do hardware, endereço Bluetooth, taxa de USB e bateria.
 - **Biblioteca** em `~/Library/Application Support/DualSense Edge Studio/`, com busca, duplicar, excluir e importar/exportar JSON. O formato é compatível com o [edge-config.com](https://edge-config.com).
+- **9 idiomas**: português, inglês, espanhol, francês, alemão, italiano, russo, chinês simplificado e japonês. O app abre no idioma do sistema, e o botão 🌐 no canto superior direito troca o idioma a qualquer momento.
 - **Atalhos**: ⌘N cria um perfil novo, ⌘S salva na biblioteca e ⌘1–⌘7 trocam de aba.
 
 ## Capturas de tela
@@ -57,6 +58,12 @@
 | ![Hardware](docs/images/hw.png) | ![Diagnóstico](docs/images/diag.png) |
 
 > As capturas foram feitas no modo simulador (interface aberta no navegador, com dados de exemplo).
+
+### Em outros idiomas
+
+| English | 日本語 | Deutsch |
+|---|---|---|
+| ![English](docs/images/lang-en.png) | ![日本語](docs/images/lang-ja.png) | ![Deutsch](docs/images/lang-de.png) |
 
 ## Requisitos
 
@@ -105,11 +112,14 @@ O guia completo, aba por aba, está em [docs/USO.md](docs/USO.md).
 ├── src/main.m          # parte nativa: IOKit HID, janela, WKWebView, barra de menus
 ├── web/                # interface (HTML/CSS/JS puro, sem build)
 │   ├── index.html, app.css, app.js
+│   ├── i18n.js         # idiomas: T(), detecção e seletor
+│   ├── i18n/           # traduções (en, es, fr, de, it, ru, zh, ja)
 │   ├── proto.js        # codificação/decodificação dos perfis, CRC32
 │   ├── native.js       # ponte JS ↔ nativo (ou simulador no navegador)
 │   ├── controller.js, model3d.js
 │   ├── presets.js, diag.js, compare.js, backup.js, hw.js
 ├── assets/             # ícone do app (.icns)
+├── scripts/            # i18n_check.py: confere as traduções
 ├── mockups/            # estudos de layout da interface
 └── docs/               # documentação e capturas de tela
 ```
@@ -127,6 +137,8 @@ O guia completo, aba por aba, está em [docs/USO.md](docs/USO.md).
 | `web/backup.js` | Backup dos slots e histórico de gravações. |
 | `web/hw.js` | Aba Hardware (output report `0x02`). |
 | `web/native.js` | Ponte com o app. No navegador, roda um simulador com dados de exemplo. |
+| `web/i18n.js`, `web/i18n/*.js` | Idiomas: função `T()`, detecção do idioma do sistema, seletor e traduções. |
+| `scripts/i18n_check.py` | Confere se todas as traduções estão completas e com os mesmos marcadores. |
 
 ## Documentação
 

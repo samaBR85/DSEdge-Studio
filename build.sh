@@ -19,18 +19,22 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+  <key>CFBundleDevelopmentRegion</key><string>pt-BR</string>
+  <key>CFBundleLocalizations</key>
+  <array><string>pt-BR</string><string>en</string><string>es</string><string>fr</string><string>de</string><string>it</string><string>ru</string><string>zh-Hans</string><string>ja</string></array>
+  <key>CFBundleAllowMixedLocalizations</key><true/>
   <key>CFBundleName</key><string>DualSense Edge Studio</string>
   <key>CFBundleDisplayName</key><string>DualSense Edge Studio</string>
   <key>CFBundleIdentifier</key><string>local.dualsense-edge-studio</string>
   <key>CFBundleExecutable</key><string>DualSenseEdgeStudio</string>
   <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>CFBundlePackageType</key><string>APPL</string>
-  <key>CFBundleShortVersionString</key><string>1.0</string>
-  <key>CFBundleVersion</key><string>1</string>
+  <key>CFBundleShortVersionString</key><string>1.1</string>
+  <key>CFBundleVersion</key><string>2</string>
   <key>LSMinimumSystemVersion</key><string>12.0</string>
   <key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
   <key>NSHighResolutionCapable</key><true/>
-  <key>NSHumanReadableCopyright</key><string>Configurador de perfis do DualSense Edge</string>
+  <key>NSHumanReadableCopyright</key><string>DualSense Edge profile editor</string>
 </dict>
 </plist>
 PLIST

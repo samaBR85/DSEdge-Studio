@@ -45,13 +45,13 @@ function glyphSvg(type, s = 22, o = {}) {
 
 // Physical button index (0..15, as in the profile mapping table) ↔ glyph / part / name
 const PHYS = [
-  { g: "up", name: "Direcional ↑", short: "↑" }, { g: "right", name: "Direcional →", short: "→" },
-  { g: "down", name: "Direcional ↓", short: "↓" }, { g: "left", name: "Direcional ←", short: "←" },
-  { g: "cir", name: "Círculo", short: "Círculo" }, { g: "crs", name: "Xis", short: "Xis" },
-  { g: "sq", name: "Quadrado", short: "Quadrado" }, { g: "tri", name: "Triângulo", short: "Triângulo" },
+  { g: "up", name: T("Direcional ↑"), short: "↑" }, { g: "right", name: T("Direcional →"), short: "→" },
+  { g: "down", name: T("Direcional ↓"), short: "↓" }, { g: "left", name: T("Direcional ←"), short: "←" },
+  { g: "cir", name: T("Círculo"), short: T("Círculo") }, { g: "crs", name: T("Xis"), short: T("Xis") },
+  { g: "sq", name: T("Quadrado"), short: T("Quadrado") }, { g: "tri", name: T("Triângulo"), short: T("Triângulo") },
   { g: "R1", name: "R1", short: "R1" }, { g: "R2", name: "R2", short: "R2" }, { g: "R3", name: "R3", short: "R3" },
   { g: "L1", name: "L1", short: "L1" }, { g: "L2", name: "L2", short: "L2" }, { g: "L3", name: "L3", short: "L3" },
-  { g: "PL", name: "Paddle esquerdo", short: "Paddle esq." }, { g: "PR", name: "Paddle direito", short: "Paddle dir." },
+  { g: "PL", name: T("Paddle esquerdo"), short: T("Paddle esq.") }, { g: "PR", name: T("Paddle direito"), short: T("Paddle dir.") },
 ];
 const PART_TO_INDEX = { up: 0, right: 1, down: 2, left: 3, cir: 4, crs: 5, sq: 6, tri: 7, R1: 8, R2: 9, R3: 10, L1: 11, L2: 12, L3: 13, PL: 14, PR: 15 };
 const INDEX_TO_PART = Object.fromEntries(Object.entries(PART_TO_INDEX).map(([k, v]) => [v, k]));

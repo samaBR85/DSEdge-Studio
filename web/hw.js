@@ -86,7 +86,7 @@ const HW = (() => {
   // debounce live sends while dragging sliders
   const timers = {};
   const soon = (k, fn) => { clearTimeout(timers[k]); timers[k] = setTimeout(() => fn().catch((e) => toast(e.message, "err")), 40); };
-  const need = () => { if (!state.status.connected) { toast("Conecte o controle pelo cabo USB.", "err"); return false; } return true; };
+  const need = () => { if (!state.status.connected) { toast(T("Conecte o controle pelo cabo USB."), "err"); return false; } return true; };
 
   // ---------------------------------------------------------------- UI
   const rng = (attr, min, max, val, step = 1) => `<input type="range" ${attr} min="${min}" max="${max}" step="${step}" value="${val}">`;
@@ -95,50 +95,50 @@ const HW = (() => {
     if (built) return sync();
     built = true;
     box.innerHTML = `<div class="hw">
-      <div class="hw-note">${G("ps", 16)} Estes ajustes valem só enquanto o controle está ligado ao Mac. Eles não ficam salvos nos perfis do controle e somem ao desconectar.
-        <button class="btn sm ghost" id="hw-reset">Restaurar padrão</button></div>
+      <div class="hw-note">${G("ps", 16)} ${T("Estes ajustes valem só enquanto o controle está ligado ao Mac. Eles não ficam salvos nos perfis do controle e somem ao desconectar.")}
+        <button class="btn sm ghost" id="hw-reset">${T("Restaurar padrão")}</button></div>
 
       <div class="card">
-        <h4>Barra de luz</h4>
+        <h4>${T("Barra de luz")}</h4>
         <div class="hw-lightbar"><i id="hw-glow"></i></div>
         <div class="hw-sw">${SWATCHES.map((c) => `<button class="sw" data-c="${c}" style="--c:${c}" title="${c}"></button>`).join("")}
-          <label class="sw custom" title="Outra cor"><input type="color" id="hw-color"></label></div>
-        <div class="field"><label>Brilho <b id="hw-bv"></b></label>${rng('id="hw-bright"', 0, 100, s.bright)}</div>
+          <label class="sw custom" title="${T("Outra cor")}"><input type="color" id="hw-color"></label></div>
+        <div class="field"><label>${T("Brilho")} <b id="hw-bv"></b></label>${rng('id="hw-bright"', 0, 100, s.bright)}</div>
         <div class="hw-row">
-          <div><div class="cap">LEDs de jogador</div>
+          <div><div class="cap">${T("LEDs de jogador")}</div>
             <div class="hw-leds" id="hw-leds">${[0, 1, 2, 3, 4].map((i) => `<span data-led="${i}"></span>`).join("")}</div>
-            <div class="chips">${[1, 2, 3, 4].map((p) => `<button class="chip" data-pl="${p}">Jogador ${p}</button>`).join("")}<button class="chip" data-pl="0">Apagar</button></div></div>
+            <div class="chips">${[1, 2, 3, 4].map((p) => `<button class="chip" data-pl="${p}">${T("Jogador {n}", { n: p })}</button>`).join("")}<button class="chip" data-pl="0">${T("Apagados")}</button></div></div>
           <div>
-            <div class="cap">Luz do botão mute</div>
-            <div class="chips">${[["Apagada", 0], ["Acesa", 1], ["Piscando", 2]].map(([n, v]) => `<button class="chip" data-mu="${v}">${n}</button>`).join("")}</div></div>
+            <div class="cap">${T("Luz do botão mute")}</div>
+            <div class="chips">${[[T("Apagada"), 0], [T("Acesa"), 1], [T("Piscando"), 2]].map(([n, v]) => `<button class="chip" data-mu="${v}">${n}</button>`).join("")}</div></div>
         </div>
       </div>
 
       <div class="card">
-        <h4>Vibração</h4>
-        <div class="muted small" style="margin-bottom:12px">O motor esquerdo é o forte e grave; o direito é o fraco e agudo.</div>
+        <h4>${T("Vibração")}</h4>
+        <div class="muted small" style="margin-bottom:12px">${T("O motor esquerdo é o forte e grave; o direito é o fraco e agudo.")}</div>
         <div class="hw-motors">
-          ${[["L", "Esquerdo", "forte"], ["R", "Direito", "fraco"]].map(([k, n, d]) => `
+          ${[["L", T("Esquerdo"), T("forte")], ["R", T("Direito"), T("fraco")]].map(([k, n, d]) => `
           <div class="hw-motor"><div class="field"><label>${n} <span class="dim">· ${d}</span><b data-mv="${k}"></b></label>${rng(`data-m="${k}"`, 0, 255, s["motor" + k])}</div>
             <div class="hw-meter"><i data-mm="${k}"></i></div></div>`).join("")}
         </div>
         <div class="chips" style="margin-top:12px">
-          <button class="btn sm" data-rb="both">Testar os dois (1 s)</button>
-          <button class="btn sm ghost" data-rb="L">Só esquerdo</button>
-          <button class="btn sm ghost" data-rb="R">Só direito</button>
-          <button class="btn sm ghost" data-rb="hold" title="Vibra enquanto o botão estiver pressionado">Segurar para vibrar</button>
-          <button class="btn sm ghost" data-rb="stop">Parar</button>
+          <button class="btn sm" data-rb="both">${T("Testar os dois (1 s)")}</button>
+          <button class="btn sm ghost" data-rb="L">${T("Só esquerdo")}</button>
+          <button class="btn sm ghost" data-rb="R">${T("Só direito")}</button>
+          <button class="btn sm ghost" data-rb="hold" title="${T("Vibra enquanto o botão estiver pressionado")}">${T("Segurar para vibrar")}</button>
+          <button class="btn sm ghost" data-rb="stop">${T("Parar")}</button>
         </div>
       </div>
 
       <div class="card hw-wide">
-        <h4>Gatilhos adaptativos</h4>
-        <div class="muted small" style="margin-bottom:12px">Escolha um efeito e aperte o gatilho para sentir. As posições vão de 0 (solto) a 9 (apertado até o fim). Se a linha “controle confirma” mostra o efeito ativo mas você não sente nada, desconecte e reconecte o cabo USB com o app aberto: o controle às vezes só libera a força dos gatilhos depois de uma reconexão.</div>
+        <h4>${T("Gatilhos adaptativos")}</h4>
+        <div class="muted small" style="margin-bottom:12px">${T("Escolha um efeito e aperte o gatilho para sentir. As posições vão de 0 (solto) a 9 (apertado até o fim). Se a linha “controle confirma” mostra o efeito ativo mas você não sente nada, desconecte e reconecte o cabo USB com o app aberto: o controle às vezes só libera a força dos gatilhos depois de uma reconexão.")}</div>
         <div class="hw-trigs">${["l2", "r2"].map((k) => `<div class="hw-trig" data-t="${k}"></div>`).join("")}</div>
       </div>
     </div>`;
 
-    $("#hw-reset").onclick = async () => { if (!need()) return; await resetAll().catch((e) => toast(e.message, "err")); s.trig.l2.mode = s.trig.r2.mode = "off"; s.mute = 0; persist(); sync(); toast("Luzes, vibração e gatilhos voltaram ao padrão.", "ok"); };
+    $("#hw-reset").onclick = async () => { if (!need()) return; await resetAll().catch((e) => toast(e.message, "err")); s.trig.l2.mode = s.trig.r2.mode = "off"; s.mute = 0; persist(); sync(); toast(T("Luzes, vibração e gatilhos voltaram ao padrão."), "ok"); };
     $$(".sw[data-c]", box).forEach((b) => (b.onclick = () => { s.color = b.dataset.c; lightsChanged(); }));
     $("#hw-color").oninput = (e) => { s.color = e.target.value; lightsChanged(); };
     $("#hw-bright").oninput = (e) => { s.bright = Number(e.target.value); lightsChanged(); };
@@ -162,28 +162,28 @@ const HW = (() => {
     sync();
   }
 
-  const MODES = [["off", "Desligado"], ["feedback", "Resistência"], ["weapon", "Ponto de tiro"], ["vibration", "Vibração"]];
+  const MODES = [["off", T("Desligado")], ["feedback", T("Resistência")], ["weapon", T("Ponto de tiro")], ["vibration", T("Vibração")]];
   const HELP = {
-    off: "Sem efeito: o gatilho fica leve como sempre.",
-    feedback: "O gatilho fica duro a partir da posição de início, como puxar um arco ou frear.",
-    weapon: "Resiste entre o início e o fim e então “quebra”, como o gatilho de uma arma.",
-    vibration: "O gatilho vibra a partir da posição de início, como uma metralhadora ou motor.",
+    off: T("Sem efeito: o gatilho fica leve como sempre."),
+    feedback: T("O gatilho fica duro a partir da posição de início, como puxar um arco ou frear."),
+    weapon: T("Resiste entre o início e o fim e então “quebra”, como o gatilho de uma arma."),
+    vibration: T("O gatilho vibra a partir da posição de início, como uma metralhadora ou motor."),
   };
   function buildTrig(k) {
     const el = $(`.hw-trig[data-t="${k}"]`), t = s.trig[k];
     const f = (name, label, min, max, help) => `<div class="field"><label>${label} <b data-v="${name}"></b></label>${rng(`data-p="${name}"`, min, max, t[name])}${help ? `<div class="help">${help}</div>` : ""}</div>`;
-    el.innerHTML = `<div class="hw-trig-head">${G(k.toUpperCase(), 22)}<b>${k === "l2" ? "Gatilho L2" : "Gatilho R2"}</b><span class="dim small" data-tv>solto</span></div>
+    el.innerHTML = `<div class="hw-trig-head">${G(k.toUpperCase(), 22)}<b>${k === "l2" ? T("Gatilho L2") : T("Gatilho R2")}</b><span class="dim small" data-tv>${T("solto")}</span></div>
       <div class="hw-tbar"><div class="hw-tzone" data-zone></div><i data-tlive></i><div class="hw-tticks">${Array.from({ length: 10 }, (_, i) => `<span>${i}</span>`).join("")}</div></div>
       <div class="chips hw-modes">${MODES.map(([m, n]) => `<button class="chip" data-mode="${m}">${n}</button>`).join("")}</div>
       <div class="help" data-help></div>
       <div class="hw-tact" data-tact></div>
       <div class="hw-params">
-        <div data-for="feedback vibration">${f("pos", "Início", 0, 9)}</div>
-        <div data-for="weapon">${f("pos", "Início", 2, 7)}</div>
-        <div data-for="weapon">${f("end", "Fim (onde quebra)", 3, 8)}</div>
-        <div data-for="feedback weapon">${f("force", "Força", 1, 8)}</div>
-        <div data-for="vibration">${f("amp", "Intensidade", 1, 8)}</div>
-        <div data-for="vibration">${f("freq", "Frequência", 1, 120, "Vibrações por segundo (Hz)")}</div>
+        <div data-for="feedback vibration">${f("pos", T("Início"), 0, 9)}</div>
+        <div data-for="weapon">${f("pos", T("Início"), 2, 7)}</div>
+        <div data-for="weapon">${f("end", T("Fim (onde quebra)"), 3, 8)}</div>
+        <div data-for="feedback weapon">${f("force", T("Força"), 1, 8)}</div>
+        <div data-for="vibration">${f("amp", T("Intensidade"), 1, 8)}</div>
+        <div data-for="vibration">${f("freq", T("Frequência"), 1, 120, T("Vibrações por segundo (Hz)"))}</div>
       </div>`;
     $$("[data-mode]", el).forEach((b) => (b.onclick = () => { if (!need()) return; t.mode = b.dataset.mode; trigChanged(); }));
     $$("[data-p]", el).forEach((r) => (r.oninput = () => {
@@ -231,8 +231,8 @@ const HW = (() => {
       const el = $(`.hw-trig[data-t="${k}"]`);
       $("[data-tlive]", el).style.left = (i[k] / 255) * 100 + "%";
       const eff = (i.raw[48] >> (k === "r2" ? 4 : 0)) & 0x0f;
-      $("[data-tact]", el).textContent = eff ? `controle confirma: ${["", "resistência", "ponto de tiro", "vibração"][eff] || "efeito " + eff} ativo` : "controle: nenhum efeito ativo";
-      $("[data-tv]", el).textContent = i[k] ? `posição ${Math.min(9, Math.floor((i[k] / 256) * 10))} · ${Math.round((i[k] / 255) * 100)}%` : "solto";
+      $("[data-tact]", el).textContent = eff ? T("controle confirma: {effect} ativo", { effect: ["", T("resistência"), T("ponto de tiro"), T("vibração")][eff] || T("efeito {n}", { n: eff }) }) : T("controle: nenhum efeito ativo");
+      $("[data-tv]", el).textContent = i[k] ? T("posição {pos} · {p}%", { pos: Math.min(9, Math.floor((i[k] / 256) * 10)), p: Math.round((i[k] / 255) * 100) }) : T("solto");
     }
   }
   // on (re)connect, re-apply what the user had chosen this session

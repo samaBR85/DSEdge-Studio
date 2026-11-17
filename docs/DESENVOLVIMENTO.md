@@ -43,13 +43,38 @@ No Claude Code, a mesma configuração está em `.claude/launch.json` (`ui-previ
 
 O simulador não substitui o teste com o controle real: leitura/gravação de slots, permissões do macOS, barra de menus e gatilhos adaptativos só podem ser verificados no app nativo.
 
+## Traduções
+
+O app tem 9 idiomas. O português é a língua de origem e o próprio texto em português é a chave da tradução (detalhes em [ARQUITETURA.md](ARQUITETURA.md#idiomas)).
+
+Ao criar ou mudar um texto:
+
+1. Escreva o texto em português dentro de `T("…")` (JS), de um atributo `data-i18n*` (HTML) ou de `L(@"…")` (Objective-C). O primeiro argumento precisa ser um texto literal entre aspas duplas, para o script encontrar. Use `{nome}` para partes variáveis e traduza frases inteiras, sem juntar pedaços.
+2. Rode o verificador. Ele lista, por idioma, as chaves que faltam, as que sobraram e as traduções com `{marcadores}` ou tags HTML diferentes:
+
+   ```bash
+   python3 scripts/i18n_check.py
+   ```
+
+3. Adicione a tradução em cada `web/i18n/<código>.js`. As chaves que sobraram podem ser apagadas.
+
+Para testar um idioma no navegador, use o seletor 🌐 ou rode `localStorage.setItem("edge-lang", "de")` no console e recarregue. No app, para simular outro idioma do sistema sem mudar o macOS:
+
+```bash
+"build/DualSense Edge Studio.app/Contents/MacOS/DualSenseEdgeStudio" -AppleLanguages '(ja)'
+```
+
+(Uma escolha feita pelo seletor tem prioridade; escolha **Idioma do sistema** para voltar a seguir o macOS.)
+
+Para adicionar um idioma: inclua o código em `LANGS` (`web/i18n.js`) e em `kLangs()` (`src/main.m`), crie `web/i18n/<código>.js`, adicione o `<script>` em `index.html` e a localização em `CFBundleLocalizations` no `build.sh`.
+
 ## Mockups
 
 `mockups/index.html` reúne estudos de layout da interface (abra direto no navegador). Não fazem parte do app.
 
 ## Depuração
 
-- **Interface no app**: no macOS 13.3 ou mais recente o `WKWebView` é inspecionável. Ative *Safari › Ajustes › Avançado › Mostrar recursos para desenvolvedores web* e abra *Safari › Desenvolvedor › (seu Mac) › DualSense Edge Studio*.
+- **Interface no app**: compile com `-DDEBUG` (adicione a flag na linha do `clang` em `build.sh`) para deixar o `WKWebView` inspecionável no macOS 13.3 ou mais recente. Ative *Safari › Ajustes › Avançado › Mostrar recursos para desenvolvedores web* e abra *Safari › Desenvolvedor › (seu Mac) › DualSense Edge Studio*.
 - **Logs nativos**: a interface manda mensagens com `Native.call("log", {text})`, que aparecem como `[EdgeStudio]` no Console.app.
 - **Report bruto**: a aba Monitor mostra o input report `0x01` em hexadecimal.
 
@@ -74,7 +99,7 @@ Ao mexer na parte nativa, mantenha estas garantias:
 
 - Objective-C com ARC, compilado com `-Wall`.
 - JavaScript sem framework, em `"use strict"`, um módulo por arquivo exposto como objeto global.
-- Textos da interface em português do Brasil.
+- Textos da interface escritos em português do Brasil e sempre passando por `T()` / `L()`.
 
 ## Publicar uma versão
 
