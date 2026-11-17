@@ -13,6 +13,7 @@
   <img alt="Universal" src="https://img.shields.io/badge/Apple%20Silicon%20%2B%20Intel-universal-blue" />
   <img alt="Objective-C + JS" src="https://img.shields.io/badge/Objective--C%20%2B%20JavaScript-no%20dependencies-success" />
   <img alt="9 languages" src="https://img.shields.io/badge/languages-9-orange" />
+  <img alt="MIT license" src="https://img.shields.io/badge/license-MIT-lightgrey" />
 </p>
 
 ![Button editor](docs/images/en/buttons.png)
@@ -29,6 +30,7 @@
 - [Project structure](#project-structure)
 - [Documentation](#documentation)
 - [Protocol summary](#protocol-summary)
+- [License](#license)
 - [Disclaimer](#disclaimer)
 
 ## Features
@@ -76,7 +78,13 @@
 
 ## Installation
 
-The app isn't signed or notarized by Apple, so the recommended way is to build it from source:
+### Download
+
+Download `DualSense-Edge-Studio.zip` from the [latest release](https://github.com/samaBR85/DSEdge-Studio/releases/latest), unzip it and drag the app to your Applications folder.
+
+The app isn't signed or notarized by Apple, so macOS blocks it the first time. Right-click the app › **Open** › **Open**, or on recent macOS versions open it once, then go to *System Settings › Privacy & Security* and click **Open Anyway**.
+
+### Build from source
 
 ```bash
 git clone https://github.com/samaBR85/DSEdge-Studio.git
@@ -175,6 +183,10 @@ It lists missing translations and any translation whose `{placeholders}` or HTML
 | Light bar, LEDs, rumble and adaptive triggers | Output `0x02` (the only output report accepted) |
 
 Validated with a real controller: reading a profile saved by the PS5 and encoding it again produces exactly the same bytes, with the same CRC. Writing a profile and reading it back also returns the same bytes. Details in [docs/PROTOCOL.md](docs/PROTOCOL.md).
+
+## License
+
+Released under the [MIT License](LICENSE).
 
 ## Disclaimer
 
