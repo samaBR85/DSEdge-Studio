@@ -1,79 +1,82 @@
 <p align="center">
-  <img src="docs/images/icon.png" width="128" alt="Ícone do DualSense Edge Studio" />
+  <img src="docs/images/icon.png" width="128" alt="DualSense Edge Studio icon" />
 </p>
 
 <h1 align="center">DualSense Edge Studio</h1>
 
 <p align="center">
-  App nativo de macOS para editar os perfis personalizados do controle <b>DualSense Edge</b>, sem PS5 e sem navegador.
+  A native macOS app for editing the custom profiles of the <b>DualSense Edge</b> controller — no PS5 and no browser needed.
 </p>
 
 <p align="center">
   <img alt="macOS 12+" src="https://img.shields.io/badge/macOS-12%2B-black?logo=apple" />
   <img alt="Universal" src="https://img.shields.io/badge/Apple%20Silicon%20%2B%20Intel-universal-blue" />
-  <img alt="Objective-C + JS" src="https://img.shields.io/badge/Objective--C%20%2B%20JavaScript-sem%20depend%C3%AAncias-success" />
+  <img alt="Objective-C + JS" src="https://img.shields.io/badge/Objective--C%20%2B%20JavaScript-no%20dependencies-success" />
+  <img alt="9 languages" src="https://img.shields.io/badge/languages-9-orange" />
 </p>
 
-![Editor de botões](docs/images/buttons.png)
+![Button editor](docs/images/en/buttons.png)
 
-## Sumário
+## Contents
 
-- [O que dá para fazer](#o-que-dá-para-fazer)
-- [Capturas de tela](#capturas-de-tela)
-- [Requisitos](#requisitos)
-- [Instalação](#instalação)
-- [Uso rápido](#uso-rápido)
-- [Segurança](#segurança)
-- [Estrutura do projeto](#estrutura-do-projeto)
-- [Documentação](#documentação)
-- [Protocolo (resumo)](#protocolo-resumo)
+- [Features](#features)
+- [Screenshots](#screenshots)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Quick start](#quick-start)
+- [Languages](#languages)
+- [Safety](#safety)
+- [Project structure](#project-structure)
+- [Documentation](#documentation)
+- [Protocol summary](#protocol-summary)
+- [Disclaimer](#disclaimer)
 
-## O que dá para fazer
+## Features
 
-- **Criar perfis novos** sem mexer nos slots (botão ＋ ou ⌘N). Eles ficam na biblioteca do app e podem ser gravados no controle depois, pelo botão "Gravar em □ ✕ ○".
-- **Ler os 4 slots do controle** (FN + △ □ ✕ ○), gravar e limpar □ ✕ ○. O slot △ é o perfil padrão e só pode ser lido.
-- **Botões**: desenho do controle com uma linha ligando cada botão à função dele. Clique num botão do desenho ou num rótulo para remapear, ou abra o seletor e aperte o botão desejado no controle. Os 16 botões podem ser remapeados, incluindo os paddles.
-- **Analógicos**: as 6 curvas do PS5, intensidade, zona morta e uma curva livre arrastando os pontos, com a resposta ao vivo.
-- **Gatilhos**: faixa útil de L2/R2, com a opção de usar a mesma configuração nos dois.
-- **Presets**: modelos por categoria (FPS, Battle Royale, Corrida, Luta, Esportes, Acessibilidade), sorteio de preset e aplicação das configurações de outro perfil da biblioteca. Um preset muda só o rascunho; nada vai para o controle até você gravar.
-- **Monitor ao vivo**: o controle aceso conforme o uso; giroscópio com um controle em 3D, inclinação, rotação e gráfico dos eixos; touchpad com até 2 dedos, rastro e clique; analógicos, gatilhos, todos os botões, report bruto e vibração.
-- **Hardware**: cor e brilho da barra de luz, LEDs de jogador, luz do mute, vibração com os dois motores separados e efeitos dos gatilhos adaptativos (resistência, ponto de tiro e vibração). Vale só enquanto o controle está ligado; nada disso fica nos perfis.
-- **Diagnóstico**: mede o drift dos analógicos e sugere a zona morta (aplica no perfil com um clique), testa a circularidade, mostra a faixa real de L2/R2 e a taxa de reports do USB (1000 Hz no Edge).
-- **Backup e histórico**: salva os 4 slots num arquivo e restaura tudo de uma vez. Antes de cada gravação, limpeza ou restauração, o app guarda uma cópia do slot no histórico, e dá para desfazer com um clique.
-- **Comparar perfis**: dois perfis lado a lado (o perfil aberto, os slots, a biblioteca ou uma cópia do histórico), com as diferenças destacadas. Os botões "Copiar B → A" levam uma parte, ou tudo, para A.
-- **Barra de menus**: ícone com a bateria do controle e o perfil ativo, aviso de bateria fraca (20% e 10%) e opção de continuar rodando só na barra de menus ao fechar a janela.
-- **Sobre o controle** (aba Diagnóstico): versão e data do firmware, versão do hardware, endereço Bluetooth, taxa de USB e bateria.
-- **Biblioteca** em `~/Library/Application Support/DualSense Edge Studio/`, com busca, duplicar, excluir e importar/exportar JSON. O formato é compatível com o [edge-config.com](https://edge-config.com).
-- **9 idiomas**: português, inglês, espanhol, francês, alemão, italiano, russo, chinês simplificado e japonês. O app abre no idioma do sistema, e o botão 🌐 no canto superior direito troca o idioma a qualquer momento.
-- **Atalhos**: ⌘N cria um perfil novo, ⌘S salva na biblioteca e ⌘1–⌘7 trocam de aba.
+- **Create new profiles** without touching the controller slots (＋ button or ⌘N). They live in the app's library and can be written to the controller later with the "Write to □ ✕ ○" button.
+- **Read all 4 controller slots** (FN + △ □ ✕ ○), and write or clear □ ✕ ○. The △ slot is the default profile and is read-only.
+- **Buttons**: a drawing of the controller with a line connecting each button to its function. Click a button on the drawing or a label to remap it, or open the picker and press the button you want on the controller. All 16 buttons can be remapped, including the back paddles.
+- **Sticks**: the 6 PS5 response curves, curve intensity, dead zone and a free-form curve you shape by dragging points, with a live response preview.
+- **Triggers**: the usable range of L2/R2, optionally linked so both use the same settings.
+- **Presets**: templates by category (FPS, Battle Royale, Racing, Fighting, Sports, Accessibility), a random preset, and applying the settings of another profile from the library. A preset only changes the draft; nothing reaches the controller until you write it.
+- **Live monitor**: the controller lights up as you use it; gyroscope with a 3D controller, pitch, roll, yaw and an axis graph; touchpad with up to 2 fingers, trails and click; sticks, triggers, every button, the raw report and rumble.
+- **Hardware**: light bar color and brightness, player LEDs, mute LED, rumble with each motor controlled separately, and adaptive trigger effects (resistance, weapon trigger and vibration). These apply only while the controller is connected; none of it is stored in the profiles.
+- **Diagnostics**: measures stick drift and suggests a dead zone (applied to the profile with one click), tests stick circularity, shows the real L2/R2 range and the USB report rate (1000 Hz on the Edge).
+- **Backup & history**: saves all 4 slots to a file and restores them in one go. Before every write, clear or restore, the app keeps a copy of the slot in the history, so you can undo with one click.
+- **Compare profiles**: two profiles side by side (the open profile, a slot, a library profile or a history copy) with the differences highlighted. The "Copy B → A" buttons bring one part, or everything, over to A.
+- **Menu bar**: an icon with the controller's battery and active profile, low-battery alerts (20% and 10%), and an option to keep running in the menu bar when the window is closed.
+- **About the controller** (Diagnostics tab): firmware version and build date, hardware version, Bluetooth address, USB rate and battery.
+- **Library** in `~/Library/Application Support/DualSense Edge Studio/`, with search, duplicate, delete and JSON import/export. The format is compatible with [edge-config.com](https://edge-config.com).
+- **9 languages**: English, Portuguese, Spanish, French, German, Italian, Russian, Simplified Chinese and Japanese. The app starts in the system language, and the 🌐 button in the top-right corner switches language at any time.
+- **Shortcuts**: ⌘N creates a new profile, ⌘S saves to the library and ⌘1–⌘7 switch tabs.
 
-## Capturas de tela
+## Screenshots
 
-| Analógicos | Monitor ao vivo |
+| Sticks | Live monitor |
 |---|---|
-| ![Analógicos](docs/images/sticks.png) | ![Monitor](docs/images/monitor.png) |
-| **Gatilhos** | **Presets** |
-| ![Gatilhos](docs/images/triggers.png) | ![Presets](docs/images/presets.png) |
-| **Hardware** | **Diagnóstico** |
-| ![Hardware](docs/images/hw.png) | ![Diagnóstico](docs/images/diag.png) |
+| ![Sticks](docs/images/en/sticks.png) | ![Monitor](docs/images/en/monitor.png) |
+| **Triggers** | **Presets** |
+| ![Triggers](docs/images/en/triggers.png) | ![Presets](docs/images/en/presets.png) |
+| **Hardware** | **Diagnostics** |
+| ![Hardware](docs/images/en/hw.png) | ![Diagnostics](docs/images/en/diag.png) |
 
-> As capturas foram feitas no modo simulador (interface aberta no navegador, com dados de exemplo).
+> Screenshots were taken in simulator mode (the UI opened in a browser with sample data).
 
-### Em outros idiomas
+### In other languages
 
-| English | 日本語 | Deutsch |
+| Português | 日本語 | Deutsch |
 |---|---|---|
-| ![English](docs/images/lang-en.png) | ![日本語](docs/images/lang-ja.png) | ![Deutsch](docs/images/lang-de.png) |
+| ![Português](docs/images/sticks.png) | ![日本語](docs/images/lang-ja.png) | ![Deutsch](docs/images/lang-de.png) |
 
-## Requisitos
+## Requirements
 
-- Controle ligado **por cabo USB**. Por Bluetooth os perfis não podem ser editados, assim como no PS5.
-- macOS 12 (Monterey) ou mais recente, Apple Silicon ou Intel.
-- Para compilar: só as Command Line Tools da Apple (`xcode-select --install`).
+- The controller connected **with a USB cable**. Profiles can't be edited over Bluetooth, just like on the PS5.
+- macOS 12 (Monterey) or later, on Apple Silicon or Intel.
+- To build: only Apple's Command Line Tools (`xcode-select --install`).
 
-## Instalação
+## Installation
 
-O app não é distribuído assinado pela Apple, então a forma recomendada é compilar a partir do código:
+The app isn't signed or notarized by Apple, so the recommended way is to build it from source:
 
 ```bash
 git clone https://github.com/samaBR85/DSEdge-Studio.git
@@ -83,84 +86,96 @@ git clone https://github.com/samaBR85/DSEdge-Studio.git
 cd DSEdge-Studio && ./build.sh
 ```
 
-O app fica em `build/DualSense Edge Studio.app`. Arraste-o para a pasta Aplicativos se quiser.
+The app is created at `build/DualSense Edge Studio.app`. Drag it to your Applications folder if you like.
 
-Se o macOS bloquear o acesso ao controle, libere o app em *Ajustes do Sistema › Privacidade e Segurança › Monitoramento de Entrada*. Detalhes e solução de problemas em [docs/USO.md](docs/USO.md#solução-de-problemas).
+If macOS blocks access to the controller, allow the app in *System Settings › Privacy & Security › Input Monitoring*. More details and troubleshooting are in the [user guide](docs/USO.md#solução-de-problemas) (Portuguese).
 
-## Uso rápido
+## Quick start
 
-1. Ligue o DualSense Edge no Mac pelo cabo USB e abra o app.
-2. Escolha um slot na barra lateral (□ ✕ ○) ou crie um perfil novo com ⌘N.
-3. Ajuste botões, analógicos e gatilhos nas abas.
-4. Clique em **Gravar em □ / ✕ / ○** para mandar o perfil ao controle. Uma cópia do conteúdo anterior vai para o histórico, então dá para desfazer.
-5. No controle, troque de perfil com **FN + □ / ✕ / ○**.
+1. Connect the DualSense Edge to your Mac with a USB cable and open the app.
+2. Pick a slot in the sidebar (□ ✕ ○) or create a new profile with ⌘N.
+3. Adjust buttons, sticks and triggers in the tabs.
+4. Click **Write to □ / ✕ / ○** to send the profile to the controller. A copy of the previous contents goes to the history, so you can undo.
+5. On the controller, switch profiles with **FN + □ / ✕ / ○**.
 
-O guia completo, aba por aba, está em [docs/USO.md](docs/USO.md).
+## Languages
 
-## Segurança
+The app opens in the first macOS preferred language it supports, falling back to English. Use the 🌐 button in the top-right corner to pick a language; the choice is saved, and **System language** goes back to following macOS. The menus, the menu-bar item and the notifications switch along with the window.
 
-- A parte nativa só aceita escrever nos feature reports de perfil (`0x60`–`0x63`) e de limpar slot (`0x68`), e no output report `0x02` (luz, vibração e gatilhos, que não ficam gravados). Qualquer outro report é recusado antes de chegar ao controle.
-- O slot △ (perfil padrão) nunca é gravado nem limpo pela interface.
-- Antes de cada gravação, limpeza ou restauração, o app guarda uma cópia do slot no histórico.
-- Os campos que o app não edita são preservados: ao regravar, ele parte dos bytes originais lidos do controle.
+Strings are written in Portuguese in the code (`T("…")` in JavaScript, `L(@"…")` in Objective-C) and translated in `web/i18n/<code>.js`. After changing any text, run:
 
-## Estrutura do projeto
+```bash
+python3 scripts/i18n_check.py
+```
+
+It lists missing translations and any translation whose `{placeholders}` or HTML tags don't match.
+
+## Safety
+
+- The native layer only accepts writes to the profile feature reports (`0x60`–`0x63`), the clear-slot report (`0x68`) and the output report `0x02` (lights, rumble and triggers, which aren't stored). Any other report is rejected before it reaches the controller.
+- The △ slot (default profile) is never written or cleared by the UI.
+- Before every write, clear or restore, the app keeps a copy of the slot in the history.
+- Fields the app doesn't edit are preserved: when writing, it starts from the original bytes read from the controller.
+
+## Project structure
 
 ```
 .
-├── build.sh            # compila o .app universal (arm64 + x86_64)
-├── src/main.m          # parte nativa: IOKit HID, janela, WKWebView, barra de menus
-├── web/                # interface (HTML/CSS/JS puro, sem build)
+├── build.sh            # builds the universal .app (arm64 + x86_64)
+├── src/main.m          # native layer: IOKit HID, window, WKWebView, menu bar
+├── web/                # UI (plain HTML/CSS/JS, no build step)
 │   ├── index.html, app.css, app.js
-│   ├── i18n.js         # idiomas: T(), detecção e seletor
-│   ├── i18n/           # traduções (en, es, fr, de, it, ru, zh, ja)
-│   ├── proto.js        # codificação/decodificação dos perfis, CRC32
-│   ├── native.js       # ponte JS ↔ nativo (ou simulador no navegador)
+│   ├── i18n.js         # languages: T(), detection and picker
+│   ├── i18n/           # translations (en, es, fr, de, it, ru, zh, ja)
+│   ├── proto.js        # profile encoding/decoding, CRC32
+│   ├── native.js       # JS ↔ native bridge (or a simulator in the browser)
 │   ├── controller.js, model3d.js
 │   ├── presets.js, diag.js, compare.js, backup.js, hw.js
-├── assets/             # ícone do app (.icns)
-├── scripts/            # i18n_check.py: confere as traduções
-├── mockups/            # estudos de layout da interface
-└── docs/               # documentação e capturas de tela
+├── assets/             # app icon (.icns)
+├── scripts/            # i18n_check.py: checks the translations
+├── mockups/            # UI layout studies
+└── docs/               # documentation and screenshots
 ```
 
-| Arquivo | Função |
+| File | Purpose |
 |---|---|
-| `src/main.m` | Parte nativa: acesso HID via IOKit, janela, WKWebView, ponte JS ↔ nativo, barra de menus e notificações. |
-| `web/proto.js` | Protocolo dos perfis: codifica e decodifica os feature reports, CRC32, curvas e input report. |
-| `web/app.js`, `web/app.css`, `web/index.html` | Interface principal. |
-| `web/controller.js` | Desenho do controle e ícones dos botões em SVG. |
-| `web/model3d.js` | Controle em 3D do monitor de giroscópio. |
-| `web/presets.js` | Presets prontos. |
-| `web/diag.js` | Aba Diagnóstico. |
-| `web/compare.js` | Comparação de perfis. |
-| `web/backup.js` | Backup dos slots e histórico de gravações. |
-| `web/hw.js` | Aba Hardware (output report `0x02`). |
-| `web/native.js` | Ponte com o app. No navegador, roda um simulador com dados de exemplo. |
-| `web/i18n.js`, `web/i18n/*.js` | Idiomas: função `T()`, detecção do idioma do sistema, seletor e traduções. |
-| `scripts/i18n_check.py` | Confere se todas as traduções estão completas e com os mesmos marcadores. |
+| `src/main.m` | Native layer: HID access via IOKit, window, WKWebView, JS ↔ native bridge, menu bar and notifications. |
+| `web/proto.js` | Profile protocol: encodes and decodes the feature reports, CRC32, curves and the input report. |
+| `web/app.js`, `web/app.css`, `web/index.html` | Main UI. |
+| `web/controller.js` | SVG controller drawing and button glyphs. |
+| `web/model3d.js` | 3D controller for the gyro monitor. |
+| `web/presets.js` | Built-in presets. |
+| `web/diag.js` | Diagnostics tab. |
+| `web/compare.js` | Profile comparison. |
+| `web/backup.js` | Slot backup and write history. |
+| `web/hw.js` | Hardware tab (output report `0x02`). |
+| `web/native.js` | Bridge to the app. In a browser it runs a simulator with sample data. |
+| `web/i18n.js`, `web/i18n/*.js` | Languages: the `T()` function, system language detection, picker and translations. |
+| `scripts/i18n_check.py` | Checks that every translation is complete and has the same placeholders. |
 
-## Documentação
+## Documentation
 
-| Documento | Conteúdo |
+The detailed guides are in Portuguese:
+
+| Document | Contents |
 |---|---|
-| [docs/USO.md](docs/USO.md) | Guia do usuário, aba por aba, e solução de problemas. |
-| [docs/ARQUITETURA.md](docs/ARQUITETURA.md) | Como a parte nativa e a interface conversam, comandos da ponte e arquivos salvos. |
-| [docs/PROTOCOLO.md](docs/PROTOCOLO.md) | Formato byte a byte dos perfis, CRCs, input report e output report. |
-| [docs/DESENVOLVIMENTO.md](docs/DESENVOLVIMENTO.md) | Como compilar, rodar a interface no navegador e contribuir. |
-| [CHANGELOG.md](CHANGELOG.md) | Histórico de versões. |
+| [docs/USO.md](docs/USO.md) | User guide, tab by tab, and troubleshooting. |
+| [docs/ARQUITETURA.md](docs/ARQUITETURA.md) | How the native layer and the UI talk, bridge commands, languages and saved files. |
+| [docs/PROTOCOLO.md](docs/PROTOCOLO.md) | Byte-by-byte profile format, CRCs, input report and output report. |
+| [docs/DESENVOLVIMENTO.md](docs/DESENVOLVIMENTO.md) | Building, running the UI in a browser, translations and contributing. |
+| [CHANGELOG.md](CHANGELOG.md) | Version history. |
 
-## Protocolo (resumo)
+## Protocol summary
 
-| Operação | Report |
+| Operation | Report |
 |---|---|
-| Ler slots | Feature `0x70`–`0x7B`: 3 reports por slot, na ordem △ □ ✕ ○ |
-| Gravar slot | Feature `0x60` □, `0x61` ✕, `0x62` ○ (`0x63` △): 3 partes, com CRC32 do perfil e CRC32 por report (semente `0xA3`) |
-| Limpar slot | Feature `0x68`, byte 1 = 2 □, 3 ✕, 4 ○ |
-| Luz, LEDs, vibração e gatilhos adaptativos | Output `0x02` (só esse report de saída é aceito) |
+| Read slots | Feature `0x70`–`0x7B`: 3 reports per slot, in the order △ □ ✕ ○ |
+| Write slot | Feature `0x60` □, `0x61` ✕, `0x62` ○ (`0x63` △): 3 parts, with a CRC32 of the profile and a CRC32 per report (seed `0xA3`) |
+| Clear slot | Feature `0x68`, byte 1 = 2 □, 3 ✕, 4 ○ |
+| Light bar, LEDs, rumble and adaptive triggers | Output `0x02` (the only output report accepted) |
 
-Validação feita com um controle real: ler um perfil gravado pelo PS5 e codificá-lo de novo gera exatamente os mesmos bytes, com o mesmo CRC. Regravar um perfil e relê-lo também devolve os mesmos bytes. Detalhes em [docs/PROTOCOLO.md](docs/PROTOCOLO.md).
+Validated with a real controller: reading a profile saved by the PS5 and encoding it again produces exactly the same bytes, with the same CRC. Writing a profile and reading it back also returns the same bytes. Details in [docs/PROTOCOLO.md](docs/PROTOCOLO.md).
 
-## Aviso
+## Disclaimer
 
-Projeto independente, sem relação com a Sony Interactive Entertainment. "PlayStation", "DualSense" e "DualSense Edge" são marcas da Sony. Use por sua conta e risco: gravar perfis altera a memória do controle (o slot △ e o firmware nunca são tocados).
+This is an independent project, not affiliated with Sony Interactive Entertainment. "PlayStation", "DualSense" and "DualSense Edge" are trademarks of Sony. Use at your own risk: writing profiles changes the controller's memory (the △ slot and the firmware are never touched).
