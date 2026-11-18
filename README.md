@@ -11,7 +11,8 @@
 <p align="center">
   <a href="https://samabr85.github.io/DSEdge-Studio/"><b>Website</b></a> ·
   <a href="https://github.com/samaBR85/DSEdge-Studio/releases/latest"><b>Download</b></a> ·
-  <a href="docs/USAGE.md"><b>User guide</b></a>
+  <a href="docs/USAGE.md"><b>User guide</b></a> ·
+  <a href="https://samabr85.github.io/blog/dsedge-studio/"><b>Blog post</b></a>
 </p>
 
 <p align="center">
@@ -178,6 +179,7 @@ It lists missing translations and any translation whose `{placeholders}` or HTML
 | [docs/PROTOCOL.md](docs/PROTOCOL.md) | Byte-by-byte profile format, CRCs, input report and output report. |
 | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Building, running the UI in a browser, translations and contributing. |
 | [CHANGELOG.md](CHANGELOG.md) | Version history. |
+| [Blog post](https://samabr85.github.io/blog/dsedge-studio/) | How the app was built: reverse-engineering the profile reports, the CRCs and the safety checks. |
 
 ## Protocol summary
 
