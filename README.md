@@ -9,6 +9,12 @@
 </p>
 
 <p align="center">
+  <a href="https://samabr85.github.io/DSEdge-Studio/"><b>Website</b></a> ·
+  <a href="https://github.com/samaBR85/DSEdge-Studio/releases/latest"><b>Download</b></a> ·
+  <a href="docs/USAGE.md"><b>User guide</b></a>
+</p>
+
+<p align="center">
   <img alt="macOS 12+" src="https://img.shields.io/badge/macOS-12%2B-black?logo=apple" />
   <img alt="Universal" src="https://img.shields.io/badge/Apple%20Silicon%20%2B%20Intel-universal-blue" />
   <img alt="Objective-C + JS" src="https://img.shields.io/badge/Objective--C%20%2B%20JavaScript-no%20dependencies-success" />
@@ -80,7 +86,7 @@
 
 ### Download
 
-Download `DualSense-Edge-Studio.dmg` from the [latest release](https://github.com/samaBR85/DSEdge-Studio/releases/latest), open it and drag **DualSense Edge Studio** onto the **Applications** folder. The release build is signed with a Developer ID and notarized by Apple, so it opens like any other app.
+Download `DualSense-Edge-Studio.dmg` from the [latest release](https://github.com/samaBR85/DSEdge-Studio/releases/latest), open it and drag **DualSense Edge Studio** onto the **Applications** folder. The release build is signed with a Developer ID and notarized by Apple, so it opens like any other app. The download is also on the [website](https://samabr85.github.io/DSEdge-Studio/).
 
 ### Build from source
 
