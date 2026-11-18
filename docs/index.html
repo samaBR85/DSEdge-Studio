@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en" class="lang-en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DualSense Edge Studio — edit DualSense Edge profiles on your Mac</title>
+<meta name="description" content="A free, native macOS app for editing the custom profiles of the DualSense Edge controller over USB — buttons, sticks, triggers, presets, live monitor and diagnostics. No PS5 needed.">
+<link rel="canonical" href="https://samabr85.github.io/DSEdge-Studio/">
+<link rel="icon" type="image/png" href="images/icon.png">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://samabr85.github.io/DSEdge-Studio/">
+<meta property="og:title" content="DualSense Edge Studio">
+<meta property="og:description" content="Edit DualSense Edge profiles on your Mac over USB — no PS5 needed. Free and open source.">
+<meta property="og:image" content="https://samabr85.github.io/DSEdge-Studio/images/en/buttons.png">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{
+    --bg:#0a0d16; --bg2:#10141f; --card:#141a28; --card2:#1a2132; --border:#232c40;
+    --text:#eef1f7; --sub:#9aa4b8; --accent:#4b8bff; --accent2:#6ea1ff; --green:#2ecc8f;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--text);
+       font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif;line-height:1.6;
+       -webkit-font-smoothing:antialiased}
+  a{color:var(--accent2);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code{font-family:'SF Mono',ui-monospace,Menlo,Consolas,monospace;font-size:.86em;background:var(--card2);
+       border:1px solid var(--border);border-radius:5px;padding:1px 6px}
+  .lang-en [data-lang="pt"],.lang-pt [data-lang="en"]{display:none}
+
+  .glow{position:fixed;inset:0;pointer-events:none;z-index:-1;
+        background:radial-gradient(900px 520px at 50% -8%,rgba(75,139,255,.20),transparent 70%)}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+
+  header{position:sticky;top:0;z-index:20;background:rgba(10,13,22,.82);backdrop-filter:blur(14px);
+         border-bottom:1px solid var(--border)}
+  header .wrap{display:flex;align-items:center;gap:12px;height:60px}
+  header img{width:32px;height:32px;border-radius:8px}
+  header .name{font-weight:700;font-size:1rem;letter-spacing:-.01em}
+  header nav{display:flex;gap:18px;margin-left:24px;font-size:.88rem}
+  header nav a{color:var(--sub)}
+  header nav a:hover{color:var(--text);text-decoration:none}
+  .spacer{flex:1}
+  .langbtns{display:flex;gap:4px}
+  .langbtns button{background:transparent;border:1px solid var(--border);color:var(--sub);
+       padding:5px 11px;border-radius:8px;cursor:pointer;font-size:.8rem;font-weight:600}
+  .langbtns button.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  @media(max-width:760px){header nav{display:none}}
+
+  .hero{text-align:center;padding:72px 0 36px}
+  .hero .icon{width:112px;height:112px;filter:drop-shadow(0 18px 40px rgba(75,139,255,.35))}
+  .eyebrow{display:inline-flex;gap:8px;align-items:center;margin:22px 0 14px;font-size:.78rem;font-weight:600;
+           color:var(--sub);background:var(--card);border:1px solid var(--border);border-radius:999px;padding:5px 14px}
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--green)}
+  .hero h1{font-size:clamp(2.1rem,6vw,3.6rem);line-height:1.05;margin:0 0 16px;letter-spacing:-.035em;font-weight:800}
+  .hero h1 .accent{background:linear-gradient(90deg,#6ea1ff,#4b8bff 60%,#8a7dff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p.lead{color:var(--sub);font-size:1.15rem;max-width:640px;margin:0 auto 30px}
+  .ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .cta{display:inline-flex;align-items:center;gap:10px;background:var(--accent);color:#fff;font-weight:700;
+       font-size:1.02rem;padding:14px 28px;border-radius:14px;box-shadow:0 10px 30px rgba(75,139,255,.35);transition:.15s}
+  .cta:hover{background:var(--accent2);transform:translateY(-1px);text-decoration:none}
+  .cta.ghost{background:transparent;border:1px solid var(--border);color:var(--text);box-shadow:none}
+  .cta.ghost:hover{border-color:#3a4766;background:var(--card)}
+  .meta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px;font-size:.84rem;color:var(--sub)}
+  .pill{background:var(--card);border:1px solid var(--border);border-radius:999px;padding:4px 12px}
+  .pill.hide{display:none}
+
+  /* screenshot viewer, mirrors the app's tabs */
+  .viewer{margin:36px auto 0;max-width:1000px}
+  .tabs{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--border);
+        border-radius:12px;padding:4px;width:max-content;max-width:100%;margin:0 auto 16px}
+  .tabs button{background:transparent;border:0;color:var(--sub);font:inherit;font-size:.86rem;font-weight:600;
+               padding:7px 13px;border-radius:9px;cursor:pointer}
+  .tabs button:hover{color:var(--text)}
+  .tabs button.active{background:var(--card2);color:var(--text)}
+  .shot{border-radius:16px;overflow:hidden;border:1px solid var(--border);background:var(--bg2);
+        box-shadow:0 30px 80px rgba(0,0,0,.55);aspect-ratio:16/10}
+  .shot img{width:100%;height:100%;display:block;object-fit:cover}
+  .caption{text-align:center;color:var(--sub);font-size:.88rem;margin-top:12px;min-height:1.4em}
+
+  section{padding:72px 0 0}
+  h2.sec{font-size:clamp(1.5rem,3.4vw,2.1rem);letter-spacing:-.02em;margin:0 0 8px;text-align:center}
+  p.secsub{color:var(--sub);text-align:center;max-width:620px;margin:0 auto 32px}
+
+  .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+  .feat{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px}
+  .feat .ic{font-size:1.35rem}
+  .feat h3{margin:.4rem 0 .3rem;font-size:1rem}
+  .feat p{margin:0;color:var(--sub);font-size:.9rem}
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.two{grid-template-columns:1fr}}
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px 24px}
+  .panel h3{margin:0 0 12px;font-size:1.05rem}
+  .panel ol,.panel ul{margin:0;padding-left:20px;color:var(--sub)}
+  .panel li{margin-bottom:8px}
+  .panel li b{color:var(--text)}
+
+  .langs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:760px){.langs{grid-template-columns:1fr}}
+  .langs figure{margin:0;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--bg2)}
+  .langs img{width:100%;display:block}
+  .langs figcaption{font-size:.8rem;color:var(--sub);padding:8px 12px}
+  .flags{text-align:center;color:var(--sub);font-size:.92rem;margin-top:16px}
+
+  .note{background:rgba(255,176,32,.07);border:1px solid rgba(255,176,32,.25);border-radius:12px;padding:14px 18px;
+        font-size:.86rem;color:var(--sub);margin-top:16px}
+
+  footer{border-top:1px solid var(--border);margin-top:80px;padding:28px 0 48px;color:var(--sub);font-size:.86rem;text-align:center}
+  footer p{margin:6px 0}
+  .kofi{margin-bottom:14px}
+</style>
+</head>
+<body class="lang-en">
+<div class="glow"></div>
+
+<header>
+  <div class="wrap">
+    <img src="images/icon.png" alt="">
+    <span class="name">DualSense Edge Studio</span>
+    <nav>
+      <a href="#features"><span data-lang="en">Features</span><span data-lang="pt">Recursos</span></a>
+      <a href="#start"><span data-lang="en">Get started</span><span data-lang="pt">Começar</span></a>
+      <a href="#safety"><span data-lang="en">Safety</span><span data-lang="pt">Segurança</span></a>
+      <a href="https://github.com/samaBR85/DSEdge-Studio">GitHub</a>
+    </nav>
+    <span class="spacer"></span>
+    <div class="langbtns">
+      <button id="btn-en" onclick="setLang('en')">EN</button>
+      <button id="btn-pt" onclick="setLang('pt')">PT</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <img class="icon" src="images/icon.png" alt="DualSense Edge Studio icon">
+    <div><span class="eyebrow"><span class="dot"></span>
+      <span data-lang="en">Native macOS app · free &amp; open source</span>
+      <span data-lang="pt">App nativo de macOS · grátis e de código aberto</span></span></div>
+    <h1>
+      <span data-lang="en">Your DualSense Edge,<br><span class="accent">tuned from your Mac.</span></span>
+      <span data-lang="pt">Seu DualSense Edge,<br><span class="accent">ajustado pelo Mac.</span></span>
+    </h1>
+    <p class="lead">
+      <span data-lang="en">Read and write the controller's on-board profiles over USB — remap every button and paddle, reshape stick curves, cut trigger travel. No PS5 and no browser needed.</span>
+      <span data-lang="pt">Leia e grave os perfis do próprio controle via USB — remapeie todos os botões e paddles, mude as curvas dos analógicos, corte o curso dos gatilhos. Sem PS5 e sem navegador.</span>
+    </p>
+    <div class="ctas">
+      <a class="cta" href="https://github.com/samaBR85/DSEdge-Studio/releases/latest/download/DualSense-Edge-Studio.dmg">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span data-lang="en">Download for macOS</span><span data-lang="pt">Baixar para macOS</span>
+      </a>
+      <a class="cta ghost" href="https://github.com/samaBR85/DSEdge-Studio">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        <span data-lang="en">Source code</span><span data-lang="pt">Código-fonte</span>
+      </a>
+    </div>
+    <div class="meta">
+      <span class="pill hide" id="verBadge"></span>
+      <span class="pill">macOS 12+ · Apple Silicon &amp; Intel</span>
+      <span class="pill"><span data-lang="en">Signed &amp; notarized</span><span data-lang="pt">Assinado e notarizado</span></span>
+      <span class="pill hide" id="dlCount"></span>
+    </div>
+
+    <div class="viewer">
+      <div class="tabs" id="tabs"></div>
+      <div class="shot"><img id="shotImg" src="images/en/buttons.png" alt="DualSense Edge Studio button editor"></div>
+      <div class="caption" id="shotCap"></div>
+    </div>
+  </section>
+
+  <section id="features">
+    <h2 class="sec"><span data-lang="en">Everything the PS5 menu does — and more</span><span data-lang="pt">Tudo o que o menu do PS5 faz — e mais</span></h2>
+    <p class="secsub">
+      <span data-lang="en">Changes are a draft until you write them. Nothing reaches the controller until you click <b>Write to □ / ✕ / ○</b>.</span>
+      <span data-lang="pt">As mudanças são um rascunho até você gravar. Nada chega ao controle até você clicar em <b>Gravar no □ / ✕ / ○</b>.</span>
+    </p>
+    <div class="features">
+      <div class="feat"><div class="ic">🕹️</div>
+        <h3><span data-lang="en">Buttons &amp; paddles</span><span data-lang="pt">Botões e paddles</span></h3>
+        <p><span data-lang="en">All 16 buttons remappable. Click the drawing, or just press the button you want on the controller.</span><span data-lang="pt">Os 16 botões remapeáveis. Clique no desenho, ou só aperte o botão desejado no controle.</span></p></div>
+      <div class="feat"><div class="ic">📈</div>
+        <h3><span data-lang="en">Stick curves</span><span data-lang="pt">Curvas dos analógicos</span></h3>
+        <p><span data-lang="en">The 6 PS5 curves, intensity, dead zone, and a free-form curve you shape by dragging points — with a live preview.</span><span data-lang="pt">As 6 curvas do PS5, intensidade, zona morta e uma curva livre que você molda arrastando pontos — com prévia ao vivo.</span></p></div>
+      <div class="feat"><div class="ic">🎚️</div>
+        <h3><span data-lang="en">Triggers</span><span data-lang="pt">Gatilhos</span></h3>
+        <p><span data-lang="en">Set the usable range of L2 and R2, optionally linked so both share the same settings.</span><span data-lang="pt">Defina o curso útil de L2 e R2, opcionalmente vinculados para usarem a mesma configuração.</span></p></div>
+      <div class="feat"><div class="ic">🎯</div>
+        <h3><span data-lang="en">Presets</span><span data-lang="pt">Presets</span></h3>
+        <p><span data-lang="en">FPS, Battle Royale, Racing, Fighting, Sports and Accessibility templates, a random preset, or another profile's settings.</span><span data-lang="pt">Modelos de FPS, Battle Royale, Corrida, Luta, Esportes e Acessibilidade, um preset aleatório, ou as configurações de outro perfil.</span></p></div>
+      <div class="feat"><div class="ic">📡</div>
+        <h3><span data-lang="en">Live monitor</span><span data-lang="pt">Monitor ao vivo</span></h3>
+        <p><span data-lang="en">Gyro with a 3D controller, two-finger touchpad with trails, every button, the raw report and rumble.</span><span data-lang="pt">Giroscópio com controle 3D, touchpad com dois dedos e rastro, todos os botões, o report bruto e a vibração.</span></p></div>
+      <div class="feat"><div class="ic">💡</div>
+        <h3><span data-lang="en">Hardware</span><span data-lang="pt">Hardware</span></h3>
+        <p><span data-lang="en">Light bar, player and mute LEDs, each rumble motor, and adaptive-trigger effects — live while connected.</span><span data-lang="pt">Light bar, LEDs de jogador e do mudo, cada motor de vibração e efeitos de gatilho adaptável — ao vivo enquanto conectado.</span></p></div>
+      <div class="feat"><div class="ic">🩺</div>
+        <h3><span data-lang="en">Diagnostics</span><span data-lang="pt">Diagnóstico</span></h3>
+        <p><span data-lang="en">Measures stick drift and suggests a dead zone in one click. Circularity, real trigger range, 1000 Hz USB rate, firmware.</span><span data-lang="pt">Mede o drift e sugere uma zona morta com um clique. Circularidade, curso real dos gatilhos, taxa USB de 1000 Hz, firmware.</span></p></div>
+      <div class="feat"><div class="ic">🗂️</div>
+        <h3><span data-lang="en">Library &amp; backup</span><span data-lang="pt">Biblioteca e backup</span></h3>
+        <p><span data-lang="en">Profiles saved on your Mac, full 4-slot backups and an automatic history before every write — undo in one click.</span><span data-lang="pt">Perfis salvos no Mac, backup completo dos 4 slots e um histórico automático antes de cada gravação — desfaz com um clique.</span></p></div>
+      <div class="feat"><div class="ic">⚖️</div>
+        <h3><span data-lang="en">Compare profiles</span><span data-lang="pt">Comparar perfis</span></h3>
+        <p><span data-lang="en">Two profiles side by side with differences highlighted, and “Copy B → A” for one part or everything.</span><span data-lang="pt">Dois perfis lado a lado com as diferenças destacadas, e “Copiar B → A” para uma parte ou tudo.</span></p></div>
+      <div class="feat"><div class="ic">🔋</div>
+        <h3><span data-lang="en">Menu bar</span><span data-lang="pt">Barra de menus</span></h3>
+        <p><span data-lang="en">Battery and active profile at a glance, low-battery alerts at 20% and 10%, and an option to keep running when the window closes.</span><span data-lang="pt">Bateria e perfil ativo num relance, alertas de bateria em 20% e 10%, e opção de continuar rodando com a janela fechada.</span></p></div>
+      <div class="feat"><div class="ic">🔁</div>
+        <h3><span data-lang="en">edge-config.com compatible</span><span data-lang="pt">Compatível com edge-config.com</span></h3>
+        <p><span data-lang="en">JSON import/export in the same format as the edge-config.com web editor, so libraries move freely between them.</span><span data-lang="pt">Importação/exportação JSON no mesmo formato do editor web edge-config.com, então as bibliotecas transitam entre os dois.</span></p></div>
+      <div class="feat"><div class="ic">⌨️</div>
+        <h3><span data-lang="en">Keyboard first</span><span data-lang="pt">Atalhos de teclado</span></h3>
+        <p><span data-lang="en"><code>⌘N</code> new profile, <code>⌘S</code> save to library, <code>⌘1</code>–<code>⌘7</code> switch tabs.</span><span data-lang="pt"><code>⌘N</code> novo perfil, <code>⌘S</code> salvar na biblioteca, <code>⌘1</code>–<code>⌘7</code> trocar de aba.</span></p></div>
+    </div>
+  </section>
+
+  <section id="start">
+    <h2 class="sec"><span data-lang="en">Get started in a minute</span><span data-lang="pt">Comece em um minuto</span></h2>
+    <p class="secsub"><span data-lang="en">Profiles can only be edited over a USB cable — same as on the PS5.</span><span data-lang="pt">Os perfis só podem ser editados por cabo USB — igual no PS5.</span></p>
+    <div class="two">
+      <div class="panel">
+        <h3><span data-lang="en">Install</span><span data-lang="pt">Instalar</span></h3>
+        <ol>
+          <li><span data-lang="en">Download <a href="https://github.com/samaBR85/DSEdge-Studio/releases/latest/download/DualSense-Edge-Studio.dmg"><code>DualSense-Edge-Studio.dmg</code></a>.</span><span data-lang="pt">Baixe o <a href="https://github.com/samaBR85/DSEdge-Studio/releases/latest/download/DualSense-Edge-Studio.dmg"><code>DualSense-Edge-Studio.dmg</code></a>.</span></li>
+          <li><span data-lang="en">Open it and drag <b>DualSense Edge Studio</b> onto <b>Applications</b>.</span><span data-lang="pt">Abra e arraste o <b>DualSense Edge Studio</b> para <b>Aplicativos</b>.</span></li>
+          <li><span data-lang="en">If macOS blocks access to the controller, allow the app in <i>System Settings › Privacy &amp; Security › Input Monitoring</i>.</span><span data-lang="pt">Se o macOS bloquear o acesso ao controle, permita o app em <i>Ajustes do Sistema › Privacidade e Segurança › Monitoramento de Entrada</i>.</span></li>
+        </ol>
+      </div>
+      <div class="panel">
+        <h3><span data-lang="en">First profile</span><span data-lang="pt">Primeiro perfil</span></h3>
+        <ol>
+          <li><span data-lang="en">Connect the controller with a <b>USB cable</b> and open the app.</span><span data-lang="pt">Conecte o controle com um <b>cabo USB</b> e abra o app.</span></li>
+          <li><span data-lang="en">Pick a slot (□ ✕ ○) or create a new profile with <code>⌘N</code>.</span><span data-lang="pt">Escolha um slot (□ ✕ ○) ou crie um perfil novo com <code>⌘N</code>.</span></li>
+          <li><span data-lang="en">Adjust buttons, sticks and triggers, then click <b>Write to □ / ✕ / ○</b>.</span><span data-lang="pt">Ajuste botões, analógicos e gatilhos e clique em <b>Gravar no □ / ✕ / ○</b>.</span></li>
+          <li><span data-lang="en">On the controller, switch profiles with <b>FN + □ / ✕ / ○</b>.</span><span data-lang="pt">No controle, troque de perfil com <b>FN + □ / ✕ / ○</b>.</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section id="safety">
+    <h2 class="sec"><span data-lang="en">Built to be safe with your controller</span><span data-lang="pt">Feito para ser seguro com o seu controle</span></h2>
+    <p class="secsub"><span data-lang="en">Writing a profile changes the controller's memory, so the guard rails live in the native code, not just the UI.</span><span data-lang="pt">Gravar um perfil altera a memória do controle, então as proteções ficam no código nativo, não só na interface.</span></p>
+    <div class="two">
+      <div class="panel">
+        <h3><span data-lang="en">What it will never touch</span><span data-lang="pt">O que ele nunca toca</span></h3>
+        <ul>
+          <li><span data-lang="en">The <b>△ slot</b> (default profile) is read-only.</span><span data-lang="pt">O <b>slot △</b> (perfil padrão) é somente leitura.</span></li>
+          <li><span data-lang="en">The <b>firmware</b> is never written.</span><span data-lang="pt">O <b>firmware</b> nunca é gravado.</span></li>
+          <li><span data-lang="en">Only the profile-write and clear-slot reports are accepted; anything else is rejected before it reaches the controller.</span><span data-lang="pt">Só os reports de gravar perfil e limpar slot são aceitos; qualquer outro é rejeitado antes de chegar ao controle.</span></li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3><span data-lang="en">How you get back</span><span data-lang="pt">Como voltar atrás</span></h3>
+        <ul>
+          <li><span data-lang="en">Every write, clear or restore first saves the slot to the <b>history</b>.</span><span data-lang="pt">Toda gravação, limpeza ou restauração salva o slot no <b>histórico</b> antes.</span></li>
+          <li><span data-lang="en">Fields the app doesn't edit are <b>preserved byte for byte</b>.</span><span data-lang="pt">Campos que o app não edita são <b>preservados byte a byte</b>.</span></li>
+          <li><span data-lang="en">Validated on a real controller: a PS5-saved profile re-encodes to exactly the same bytes and CRC.</span><span data-lang="pt">Validado num controle real: um perfil salvo pelo PS5 recodifica para exatamente os mesmos bytes e CRC.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="languages">
+    <h2 class="sec"><span data-lang="en">Speaks 9 languages</span><span data-lang="pt">Fala 9 idiomas</span></h2>
+    <p class="secsub"><span data-lang="en">Starts in your system language; switch any time with the 🌐 button.</span><span data-lang="pt">Abre no idioma do sistema; troque quando quiser pelo botão 🌐.</span></p>
+    <div class="langs">
+      <figure><img src="images/lang-pt.png" alt="Interface in Portuguese" loading="lazy"><figcaption>Português</figcaption></figure>
+      <figure><img src="images/lang-ja.png" alt="Interface in Japanese" loading="lazy"><figcaption>日本語</figcaption></figure>
+      <figure><img src="images/lang-de.png" alt="Interface in German" loading="lazy"><figcaption>Deutsch</figcaption></figure>
+    </div>
+    <p class="flags">English · Português · Español · Français · Deutsch · Italiano · Русский · 简体中文 · 日本語</p>
+  </section>
+
+  <section>
+    <div class="two">
+      <div class="panel">
+        <h3><span data-lang="en">Requirements</span><span data-lang="pt">Requisitos</span></h3>
+        <ul>
+          <li><span data-lang="en">macOS 12 Monterey or later, Apple Silicon or Intel.</span><span data-lang="pt">macOS 12 Monterey ou mais novo, Apple Silicon ou Intel.</span></li>
+          <li><span data-lang="en">A DualSense Edge connected with a <b>USB cable</b> (Bluetooth can't edit profiles).</span><span data-lang="pt">Um DualSense Edge conectado por <b>cabo USB</b> (Bluetooth não edita perfis).</span></li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3><span data-lang="en">Open source</span><span data-lang="pt">Código aberto</span></h3>
+        <ul>
+          <li><span data-lang="en">MIT license. Objective-C + plain HTML/JS, no dependencies.</span><span data-lang="pt">Licença MIT. Objective-C + HTML/JS puro, sem dependências.</span></li>
+          <li><span data-lang="en">Docs: <a href="https://github.com/samaBR85/DSEdge-Studio/blob/main/docs/USAGE.md">user guide</a> · <a href="https://github.com/samaBR85/DSEdge-Studio/blob/main/docs/PROTOCOL.md">USB protocol</a> · <a href="https://github.com/samaBR85/DSEdge-Studio/blob/main/CHANGELOG.md">changelog</a>.</span><span data-lang="pt">Docs: <a href="https://github.com/samaBR85/DSEdge-Studio/blob/main/docs/USAGE.md">guia de uso</a> · <a href="https://github.com/samaBR85/DSEdge-Studio/blob/main/docs/PROTOCOL.md">protocolo USB</a> · <a href="https://github.com/samaBR85/DSEdge-Studio/blob/main/CHANGELOG.md">changelog</a>.</span></li>
+          <li><span data-lang="en">The story behind it: <a href="https://samabr85.github.io/blog/dsedge-studio/">blog post</a>.</span><span data-lang="pt">A história por trás: <a href="https://samabr85.github.io/blog/dsedge-studio/">post no blog</a>.</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="note">
+      <span data-lang="en">An independent project, not affiliated with Sony Interactive Entertainment. “PlayStation”, “DualSense” and “DualSense Edge” are trademarks of Sony. Use at your own risk: writing profiles changes the controller's memory (the △ slot and the firmware are never touched).</span>
+      <span data-lang="pt">Projeto independente, sem afiliação com a Sony Interactive Entertainment. “PlayStation”, “DualSense” e “DualSense Edge” são marcas da Sony. Use por sua conta e risco: gravar perfis altera a memória do controle (o slot △ e o firmware nunca são tocados).</span>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="kofi">
+      <a href="https://ko-fi.com/E5N7227AO5" target="_blank" rel="noopener"><img height="36" src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Support me on Ko-fi" style="border:none"></a>
+    </div>
+    <p>
+      <span data-lang="en">Made by</span><span data-lang="pt">Feito por</span>
+      <a href="https://samabr85.github.io/">samaBR</a> ·
+      <a href="https://github.com/samaBR85/DSEdge-Studio">GitHub</a> ·
+      <a href="https://github.com/samaBR85/DSEdge-Studio/releases">Releases</a>
+    </p>
+  </div>
+</footer>
+
+<script>
+  var SHOTS = [
+    { id:'buttons',  en:'Buttons',     pt:'Botões',      cen:'Every button connected to its function — click to remap, paddles included.', cpt:'Cada botão ligado à sua função — clique para remapear, paddles inclusos.' },
+    { id:'sticks',   en:'Sticks',      pt:'Analógicos',  cen:'PS5 curves, intensity, dead zone and a free-form curve with live response.', cpt:'Curvas do PS5, intensidade, zona morta e curva livre com resposta ao vivo.' },
+    { id:'triggers', en:'Triggers',    pt:'Gatilhos',    cen:'The usable range of L2 and R2, optionally linked.', cpt:'O curso útil de L2 e R2, opcionalmente vinculados.' },
+    { id:'presets',  en:'Presets',     pt:'Presets',     cen:'Templates by category, a random preset, or another profile’s settings.', cpt:'Modelos por categoria, um preset aleatório, ou as configurações de outro perfil.' },
+    { id:'monitor',  en:'Monitor',     pt:'Monitor',     cen:'Gyro with a 3D controller, touchpad, sticks, triggers and the raw report.', cpt:'Giroscópio com controle 3D, touchpad, analógicos, gatilhos e o report bruto.' },
+    { id:'hw',       en:'Hardware',    pt:'Hardware',    cen:'Light bar, LEDs, rumble motors and adaptive-trigger effects.', cpt:'Light bar, LEDs, motores de vibração e efeitos de gatilho adaptável.' },
+    { id:'diag',     en:'Diagnostics', pt:'Diagnóstico', cen:'Drift, circularity, trigger range, USB rate and controller info.', cpt:'Drift, circularidade, curso dos gatilhos, taxa USB e informações do controle.' }
+  ];
+  var lang = 'en', current = 'buttons';
+  var tabs = document.getElementById('tabs');
+  SHOTS.forEach(function(s){
+    var b = document.createElement('button');
+    b.dataset.id = s.id;
+    b.onclick = function(){ show(s.id); };
+    tabs.appendChild(b);
+  });
+  // preload the other screenshots so switching tabs is instant
+  SHOTS.forEach(function(s){ if (s.id !== 'buttons') { var i = new Image(); i.src = 'images/en/' + s.id + '.png'; } });
+
+  function show(id){
+    current = id;
+    var s = SHOTS.filter(function(x){ return x.id === id; })[0];
+    var img = document.getElementById('shotImg');
+    img.src = 'images/en/' + id + '.png';
+    img.alt = 'DualSense Edge Studio — ' + s.en;
+    document.getElementById('shotCap').textContent = lang === 'pt' ? s.cpt : s.cen;
+    Array.prototype.forEach.call(tabs.children, function(b){ b.classList.toggle('active', b.dataset.id === id); });
+  }
+  function renderTabs(){
+    Array.prototype.forEach.call(tabs.children, function(b){
+      var s = SHOTS.filter(function(x){ return x.id === b.dataset.id; })[0];
+      b.textContent = lang === 'pt' ? s.pt : s.en;
+    });
+    show(current);
+  }
+
+  function setLang(l){
+    lang = l;
+    document.documentElement.className = 'lang-' + l;
+    document.documentElement.lang = l === 'pt' ? 'pt-BR' : 'en';
+    document.body.className = 'lang-' + l;
+    document.getElementById('btn-pt').classList.toggle('active', l === 'pt');
+    document.getElementById('btn-en').classList.toggle('active', l === 'en');
+    try { localStorage.setItem('lang', l); } catch(e) {}
+    renderTabs();
+    renderDownloads();
+  }
+
+  var downloads = null;
+  function renderDownloads(){
+    if (downloads === null) return;
+    var el = document.getElementById('dlCount');
+    el.textContent = '⬇ ' + downloads.toLocaleString() + ' download' + (downloads === 1 ? '' : 's');
+    el.classList.remove('hide');
+  }
+
+  (function(){
+    var saved = null; try { saved = localStorage.getItem('lang'); } catch(e) {}
+    setLang(saved || ((navigator.language || 'en').toLowerCase().indexOf('pt') === 0 ? 'pt' : 'en'));
+  })();
+
+  // current version + total downloads from GitHub releases
+  fetch('https://api.github.com/repos/samaBR85/DSEdge-Studio/releases')
+    .then(function(r){ return r.ok ? r.json() : Promise.reject(); })
+    .then(function(rels){
+      if (rels.length) {
+        var v = document.getElementById('verBadge');
+        v.textContent = rels[0].tag_name;
+        v.classList.remove('hide');
+      }
+      downloads = 0;
+      rels.forEach(function(rel){ (rel.assets || []).forEach(function(a){ downloads += a.download_count || 0; }); });
+      renderDownloads();
+    }).catch(function(){});
+</script>
+</body>
+</html>
